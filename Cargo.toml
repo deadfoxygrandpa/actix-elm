@@ -3,10 +3,17 @@ name = "dokku-test"
 version = "0.1.0"
 authors = ["alex"]
 edition = "2018"
+autobins = false
+build = "build.rs"
+
+[[bin]]
+name = "dokku-test"
+path = "server/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 actix-web = "2.0.0"
 actix-rt = "1.0.0"
+actix-files = "0.2.1"
 serde = "1.0.104"

@@ -1,0 +1,10 @@
+# Rust
+
+/target/
+Cargo.lock
+**/*.rs.bk
+
+# Elm
+
+/elm-stuff/
+repl-temp-*
