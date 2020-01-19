@@ -8,3 +8,4 @@ Cargo.lock
 
 /elm-stuff/
 repl-temp-*
+/static/index.html
