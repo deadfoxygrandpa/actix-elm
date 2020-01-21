@@ -14,7 +14,7 @@ jobs:
       run: docker build . --file Dockerfile --tag test:$GITHUB_SHA
     
     - name: send to server
-      run: docker save test | ssh ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:${{ secrets.REMOTE_PORT }} "docker load"
+      run: docker save test | ssh -p ${{ secrets.REMOTE_PORT }} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "docker load"
     
     - name: deploy to dokku
       uses: appleboy/ssh-action@master
