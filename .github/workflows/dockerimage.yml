@@ -11,4 +11,15 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      run: docker build . --file Dockerfile --tag test:${{ GITHUB_SHA }}
+      
+    - name: deploy to dokku
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.REMOTE_PORT }}
+        run: docker save test | ssh ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:${{ secrets.REMOTE_PORT }} "docker load"
+        script: |
+          dokku tags:deploy test
