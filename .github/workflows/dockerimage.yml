@@ -31,4 +31,5 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.REMOTE_PORT }}
         script: |
+          docker tag test:$GITHUB_SHA dokku/test:latest
           dokku tags:deploy test
