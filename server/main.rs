@@ -9,7 +9,7 @@ struct Lol {
 
 
 async fn hello() -> impl Responder {
-    web::Json(Lol { msg: "lol im using rust and elm. and stingent sucks".to_string() })
+    web::Json(Lol { msg: "lol im using rust and elm. and now i can deploy from github".to_string() })
 }
 
 async fn index() -> Result<fs::NamedFile> {
