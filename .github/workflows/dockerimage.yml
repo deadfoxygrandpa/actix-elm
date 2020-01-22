@@ -18,6 +18,7 @@ jobs:
       with:
         # private SSH key
         private-key: ${{ secrets.SSH_KEY }}
+        known-hosts: ${{ secrets.KNOWN_HOSTS }}
 
     - name: send to server
       run: docker save test | ssh -p ${{ secrets.REMOTE_PORT }} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "docker load"
