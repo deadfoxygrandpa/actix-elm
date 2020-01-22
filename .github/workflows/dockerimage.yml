@@ -25,11 +25,14 @@ jobs:
     
     - name: deploy to dokku
       uses: appleboy/ssh-action@master
+      env:
+        NAME: test:$GITHUB_SHA
       with:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.REMOTE_PORT }}
+        envs: NAME
         script: |
-          docker tag test:$GITHUB_SHA dokku/test:latest
+          docker tag $NAME dokku/test:latest
           dokku tags:deploy test
