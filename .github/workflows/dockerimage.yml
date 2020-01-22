@@ -13,15 +13,11 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag test:$GITHUB_SHA
 
-    - name: set up ssh
-      uses: appleboy/ssh-action@master
+    - name: Install SSH Key
+      uses: shimataro/ssh-key-action@v1.6.1
       with:
-        host: ${{ secrets.REMOTE_HOST }}
-        username: ${{ secrets.REMOTE_USER }}
-        key: ${{ secrets.SSH_KEY }}
-        port: ${{ secrets.REMOTE_PORT }}
-        script: |
-          echo "hi"
+        # private SSH key
+        private-key: ${{ secrets.SSH_KEY }}
 
     - name: send to server
       run: docker save test | ssh -p ${{ secrets.REMOTE_PORT }} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "docker load"
