@@ -33,9 +33,10 @@ impl error::Error for DBError {
     }
 }
 
-// pub fn get_pool() -> Result<DBPool> {
-	
-// }
+pub fn get_pool(connection_str: &str) -> Result<DB, DBError> {
+	let manager = PostgresConnectionManager::new(connection_str.parse().unwrap(), NoTls);
+	r2d2::Pool::new(manager).map_err(|e| DBError::PoolError(e))
+}
 
 pub async fn select_hello(db: web::Data<DB>) -> Result<String, actix_web::error::BlockingError<DBError>> {
 	web::block(move || {

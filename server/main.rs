@@ -12,10 +12,10 @@ struct Lol {
 }
 
 
-async fn hello() -> impl Responder {
-    match std::env::var("DATABASE_URL") {
+async fn hello(db: web::Data<database::DB>) -> impl Responder {
+    match database::select_hello(db).await {
         Ok(x) => web::Json(Lol { msg: x }),
-        Err(_) => web::Json(Lol { msg: "error".to_string() })
+        Err(e) => web::Json(Lol { msg: e.to_string() })
     }
 }
 
@@ -29,8 +29,13 @@ async fn favicon() -> Result<fs::NamedFile> {
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| { 
+
+    let postgres_url = std::env::var("DATABASE_URL").unwrap();
+    let db = database::get_pool(&postgres_url).unwrap();
+
+    HttpServer::new(move || { 
         App::new()
+            .data(db.clone())
             .service(web::scope("/api")
                 .route("/hello", web::get().to(hello)))
             .service(web::scope("")
