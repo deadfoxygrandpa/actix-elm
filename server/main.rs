@@ -18,7 +18,7 @@ struct Lol {
 
 async fn hello(db: web::Data<database::DB>, id: Identity) -> impl Responder {
     match database::select_hello(db).await {
-        Ok(x) => web::Json(Lol { msg: format!("{}: {}", x, id.identity().unwrap_or("idk".to_string())) }),
+        Ok(x) => web::Json(Lol { msg: format!("{}: {}", x, id.identity().unwrap_or_else(|| "idk".to_string())) }),
         Err(e) => web::Json(Lol { msg: e.to_string() })
     }
 }
