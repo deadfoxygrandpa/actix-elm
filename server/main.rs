@@ -23,7 +23,8 @@ async fn hello(db: web::Data<database::DB>, id: Identity) -> impl Responder {
     }
 }
 
-async fn index() -> Result<fs::NamedFile> {
+async fn index(id: Identity) -> Result<fs::NamedFile> {
+    id.remember("cool".to_string());
     Ok(fs::NamedFile::open("static/index.html")?)
 }
 
