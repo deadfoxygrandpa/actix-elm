@@ -1,6 +1,10 @@
 use actix_web::{web, App, HttpServer, Responder, Result};
 use actix_files as fs;
 use serde::{Serialize};
+use std::env;
+
+#[allow(dead_code)]
+mod database;
 
 #[derive(Serialize)]
 struct Lol {
@@ -9,7 +13,10 @@ struct Lol {
 
 
 async fn hello() -> impl Responder {
-    web::Json(Lol { msg: "lol im using rust and elm. and now i can deploy from github".to_string() })
+    match std::env::var("DATABASE_URL") {
+        Ok(x) => web::Json(Lol { msg: x }),
+        Err(_) => web::Json(Lol { msg: "error".to_string() })
+    }
 }
 
 async fn index() -> Result<fs::NamedFile> {
