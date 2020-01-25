@@ -1,7 +1,11 @@
 use actix_web::{web, App, HttpServer, Responder, Result};
 use actix_files as fs;
+use actix_identity::{Identity, CookieIdentityPolicy, IdentityService};
 use serde::{Serialize};
 use std::env;
+
+#[macro_use]
+extern crate lazy_static;
 
 #[allow(dead_code)]
 mod database;
@@ -12,9 +16,9 @@ struct Lol {
 }
 
 
-async fn hello(db: web::Data<database::DB>) -> impl Responder {
+async fn hello(db: web::Data<database::DB>, id: Identity) -> impl Responder {
     match database::select_hello(db).await {
-        Ok(x) => web::Json(Lol { msg: x }),
+        Ok(x) => web::Json(Lol { msg: format!("{}: {}", x, id.identity().unwrap_or("idk".to_string())) }),
         Err(e) => web::Json(Lol { msg: e.to_string() })
     }
 }
@@ -27,6 +31,10 @@ async fn favicon() -> Result<fs::NamedFile> {
     Ok(fs::NamedFile::open("static/favicon.ico")?)
 }
 
+lazy_static! {
+    static ref SECRET_KEY: String = std::env::var("SECRET_KEY").unwrap_or_else(|_| "7890".repeat(8));
+}
+
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
 
@@ -35,6 +43,11 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || { 
         App::new()
+            .wrap(IdentityService::new(
+                CookieIdentityPolicy::new(SECRET_KEY.as_bytes())
+                    .name("auth-cookie")
+                    .max_age(60)
+                    .secure(false)))
             .data(db.clone())
             .service(web::scope("/api")
                 .route("/hello", web::get().to(hello)))
