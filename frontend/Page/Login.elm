@@ -16,6 +16,7 @@ type alias Model =
 type alias Form =
     { username : String
     , password : String
+    , reply : Maybe String
     }
 
 
@@ -35,7 +36,7 @@ type FormMsg
     = SubmittedForm
     | EnteredUsername String
     | EnteredPassword String
-    | SentLogin (Result Http.Error ())
+    | SentLogin (Result Http.Error String)
 
 
 init : Model
@@ -45,7 +46,7 @@ init =
 
 initForm : Form
 initForm =
-    { username = "", password = "" }
+    { username = "", password = "", reply = Nothing }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,8 +72,8 @@ updateForm msg form =
         EnteredPassword s ->
             { form | password = s } |> withNoCmd
 
-        SentLogin _ ->
-            form |> withNoCmd
+        SentLogin s ->
+            { form | reply = Just s } |> withNoCmd
 
 
 login : Form -> Cmd FormMsg
@@ -80,7 +81,7 @@ login form =
     Api.post
         { endpoint = Api.login
         , body = Http.jsonBody <| encode form
-        , expect = Http.expectWhatever SentLogin
+        , expect = Http.expectJson SentLogin Api.msgDecoder
         }
 
 
@@ -139,4 +140,10 @@ viewForm form =
                     [ text "Login" ]
                 ]
             ]
+        , case form.reply of
+            Just s ->
+                div [] [ text s ]
+
+            Nothing ->
+                div [] []
         ]

@@ -1,11 +1,17 @@
-module Api exposing (get, hello, login, post)
+module Api exposing (get, hello, login, msgDecoder, post)
 
 import Http
+import Json.Decoder exposing (Decoder, field, string)
 import Url.Builder
 
 
 type Endpoint
     = Endpoint String
+
+
+msgDecoder : Decoder String
+msgDecoder =
+    field "msg" string
 
 
 get :
