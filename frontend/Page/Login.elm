@@ -2,7 +2,6 @@ module Page.Login exposing (Form, FormMsg(..), Model, Msg(..), init, update, vie
 
 import Api
 import Cmd.Extra exposing (withCmd, withNoCmd)
-import Debug
 import Html exposing (Html, text)
 import Html.Attributes
 import Html.Events
@@ -64,7 +63,7 @@ updateForm : FormMsg -> Form -> ( Form, Cmd FormMsg )
 updateForm msg form =
     case msg of
         SubmittedForm ->
-            Debug.log "submit" form |> withCmd (login form)
+            form |> withCmd (login form)
 
         EnteredUsername s ->
             { form | username = s } |> withNoCmd
