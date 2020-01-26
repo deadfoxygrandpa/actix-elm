@@ -31,9 +31,9 @@ async fn hello(db: web::Data<database::DB>, id: Identity) -> impl Responder {
     }
 }
 
-async fn login(info: web::Json<Login>, id: Identity) -> impl Responder {
+async fn login(info: web::Json<Login>, id: Identity, db: web::Data<database::DB>) -> impl Responder {
     id.remember(info.into_inner().username);
-    HttpResponse::Ok().finish()
+    hello(db, id).await
 }
 
 // STATIC FILES
