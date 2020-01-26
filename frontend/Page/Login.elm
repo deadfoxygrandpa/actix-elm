@@ -72,8 +72,13 @@ updateForm msg form =
         EnteredPassword s ->
             { form | password = s } |> withNoCmd
 
-        SentLogin s ->
-            { form | reply = Just s } |> withNoCmd
+        SentLogin rs ->
+            case rs of
+                Ok s ->
+                    { form | reply = Just s } |> withNoCmd
+
+                Err _ ->
+                    form |> withNoCmd
 
 
 login : Form -> Cmd FormMsg
@@ -142,8 +147,8 @@ viewForm form =
             ]
         , case form.reply of
             Just s ->
-                div [] [ text s ]
+                Html.div [] [ text s ]
 
             Nothing ->
-                div [] []
+                Html.div [] []
         ]
