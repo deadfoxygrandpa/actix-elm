@@ -1,7 +1,7 @@
 use actix_web::{web, App, HttpServer, Responder, Result};
 use actix_files as fs;
 use actix_identity::{Identity, CookieIdentityPolicy, IdentityService};
-use serde::{Serialize, Deserialize};
+use serde::{Serialize};
 use std::thread;
 
 #[macro_use]
@@ -18,12 +18,6 @@ struct Lol {
     msg: String,
 }
 
-#[derive(Serialize, Deserialize, PartialEq)]
-struct Login {
-    username: String,
-    password: String,
-}
-
 async fn hello(db: web::Data<database::DB>, id: Identity) -> impl Responder {
     match database::select_hello(db).await {
         Ok(x) => web::Json(Lol { msg: format!("{}: {}", x, id.identity().unwrap_or_else(|| "idk".to_string())) }),
@@ -31,9 +25,24 @@ async fn hello(db: web::Data<database::DB>, id: Identity) -> impl Responder {
     }
 }
 
-async fn login(info: web::Json<Login>, id: Identity, db: web::Data<database::DB>) -> impl Responder {
-    id.remember(info.into_inner().username);
-    hello(db, id).await
+async fn login(info: web::Json<database::Login>, id: Identity, db: web::Data<database::DB>) -> impl Responder {
+    
+    let login_info = info.into_inner();
+
+    match database::authenticate(db, login_info.clone()).await {
+        Ok(s) => { id.remember(login_info.username); web::Json(Lol { msg: s }) },
+        Err(e) => web::Json(Lol { msg: e.to_string() })
+    }
+}
+
+async fn register(info: web::Json<database::Register>, db: web::Data<database::DB>) -> impl Responder {
+    
+    let register_info = info.into_inner();
+
+    match database::register(db, register_info.clone()).await {
+        Ok(s) => web::Json(Lol { msg: s }),
+        Err(e) => web::Json(Lol { msg: e.to_string() })
+    }
 }
 
 // STATIC FILES
@@ -80,6 +89,7 @@ async fn main() -> std::io::Result<()> {
             .service(web::scope("/api")
                 .route("/hello", web::get().to(hello))
                 .route("/login", web::post().to(login)))
+                .route("/register", web::post().to(register))
             .service(web::scope("")
                 .route("/", web::get().to(index))
                 .route("/favicon.ico", web::get().to(favicon)))
