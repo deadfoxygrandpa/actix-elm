@@ -8,6 +8,7 @@ import Html.Attributes
 import Http
 import Json.Decode exposing (Decoder, field, string)
 import Page.Login
+import Page.Register
 
 
 
@@ -30,6 +31,7 @@ main =
 type alias Model =
     { hello : Hello
     , login : Page.Login.Model
+    , register : Page.Register.Model
     }
 
 
@@ -41,10 +43,10 @@ type Hello
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { hello = Loading, login = Page.Login.init }
+    ( { hello = Loading, login = Page.Login.init, register = Page.Register.init }
     , Api.get
         { endpoint = Api.hello
-        , expect = Http.expectJson GotJson msgDecoder
+        , expect = Http.expectJson GotJson Api.msgDecoder
         }
     )
 
@@ -61,6 +63,7 @@ msgDecoder =
 type Msg
     = GotJson (Result Http.Error String)
     | LoginMsg Page.Login.Msg
+    | RegisterMsg Page.Register.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -76,6 +79,9 @@ update msg model =
 
         LoginMsg loginMsg ->
             updateWith LoginMsg (\m -> { model | login = m }) (Page.Login.update loginMsg model.login)
+
+        RegisterMsg registerMsg ->
+            updateWith RegisterMsg (\m -> { model | register = m }) (Page.Register.update registerMsg model.register)
 
 
 updateWith : (subMsg -> Msg) -> (subModel -> Model) -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
@@ -101,6 +107,7 @@ view model =
     Html.div []
         [ viewAPIResult model.hello
         , Html.map LoginMsg (Page.Login.view model.login)
+        , Html.map RegisterMsg (Page.Register.view model.register)
         ]
 
 

@@ -1,4 +1,4 @@
-module Page.Login exposing (Form, FormMsg(..), Model, Msg(..), init, update, view, viewForm)
+module Page.Register exposing (Form, FormMsg(..), Model, Msg(..), init, update, view, viewForm)
 
 import Api
 import Cmd.Extra exposing (withCmd, withNoCmd)
@@ -16,6 +16,7 @@ type alias Model =
 type alias Form =
     { username : String
     , password : String
+    , confirm : String
     , reply : Maybe String
     }
 
@@ -25,6 +26,7 @@ encode form =
     Json.Encode.object
         [ ( "username", Json.Encode.string form.username )
         , ( "password", Json.Encode.string form.password )
+        , ( "confirm", Json.Encode.string form.confirm )
         ]
 
 
@@ -36,7 +38,8 @@ type FormMsg
     = SubmittedForm
     | EnteredUsername String
     | EnteredPassword String
-    | SentLogin (Result Http.Error String)
+    | EnteredConfirm String
+    | SentRegister (Result Http.Error String)
 
 
 init : Model
@@ -46,7 +49,7 @@ init =
 
 initForm : Form
 initForm =
-    { username = "", password = "", reply = Nothing }
+    { username = "", password = "", confirm = "", reply = Nothing }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -72,7 +75,10 @@ updateForm msg form =
         EnteredPassword s ->
             { form | password = s } |> withNoCmd
 
-        SentLogin rs ->
+        EnteredConfirm s ->
+            { form | confirm = s } |> withNoCmd
+
+        SentRegister rs ->
             case rs of
                 Ok s ->
                     { form | reply = Just s } |> withNoCmd
@@ -84,9 +90,9 @@ updateForm msg form =
 login : Form -> Cmd FormMsg
 login form =
     Api.post
-        { endpoint = Api.login
+        { endpoint = Api.register
         , body = Http.jsonBody <| encode form
-        , expect = Http.expectJson SentLogin Api.msgDecoder
+        , expect = Http.expectJson SentRegister Api.msgDecoder
         }
 
 
@@ -138,12 +144,30 @@ viewForm form =
             []
             [ Html.div
                 []
+                [ Html.label
+                    []
+                    [ text "Repeat Password" ]
+                ]
+            , Html.div
+                []
+                [ Html.input
+                    [ Html.Events.onInput EnteredConfirm
+                    , Html.Attributes.value form.confirm
+                    , Html.Attributes.type_ "password"
+                    ]
+                    []
+                ]
+            ]
+        , Html.div
+            []
+            [ Html.div
+                []
                 []
             , Html.div
                 []
                 [ Html.button
                     []
-                    [ text "Login" ]
+                    [ text "Register" ]
                 ]
             ]
         , case form.reply of

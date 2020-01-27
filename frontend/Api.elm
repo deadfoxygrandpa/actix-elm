@@ -1,4 +1,4 @@
-module Api exposing (get, hello, login, msgDecoder, post)
+module Api exposing (get, hello, login, msgDecoder, post, register)
 
 import Http
 import Json.Decode exposing (Decoder, field, string)
@@ -51,3 +51,8 @@ hello =
 login : Endpoint
 login =
     url [ "login" ]
+
+
+register : Endpoint
+register =
+    url [ "register" ]
