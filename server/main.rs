@@ -36,10 +36,14 @@ async fn login(info: web::Json<database::Login>, id: Identity, db: web::Data<dat
 }
 
 async fn register(info: web::Json<database::Register>, db: web::Data<database::DB>) -> impl Responder {
-    
-    let register_info = info.into_inner();
+    match database::register(db, info.into_inner()).await {
+        Ok(s) => web::Json(Lol { msg: s }),
+        Err(e) => web::Json(Lol { msg: e.to_string() })
+    }
+}
 
-    match database::register(db, register_info.clone()).await {
+async fn confirm(info: web::Path<String>, db: web::Data<database::DB>) -> impl Responder {
+    match database::confirm(db, info.into_inner()).await {
         Ok(s) => web::Json(Lol { msg: s }),
         Err(e) => web::Json(Lol { msg: e.to_string() })
     }
@@ -88,11 +92,14 @@ async fn main() -> std::io::Result<()> {
             .data(db.clone())
             .service(web::scope("/api")
                 .route("/hello", web::get().to(hello))
-                .route("/login", web::post().to(login)))
-                .route("/register", web::post().to(register))
+                .route("/login", web::post().to(login))
+                .route("/register", web::post().to(register)) 
+                .route("/confirm/{token}", web::get().to(confirm))
+            )
             .service(web::scope("")
                 .route("/", web::get().to(index))
-                .route("/favicon.ico", web::get().to(favicon)))
+                .route("/favicon.ico", web::get().to(favicon))
+            )
     })
     .bind("0.0.0.0:5000")?
     .run()

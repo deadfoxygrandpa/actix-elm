@@ -172,7 +172,7 @@ viewForm form =
             ]
         , case form.reply of
             Just s ->
-                Html.div [] [ text s ]
+                Html.div [] [ Html.a [ Html.Attributes.href <| Api.confirm s ] [ text <| s ] ]
 
             Nothing ->
                 Html.div [] []

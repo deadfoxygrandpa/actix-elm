@@ -1,4 +1,4 @@
-module Api exposing (get, hello, login, msgDecoder, post, register)
+module Api exposing (confirm, get, hello, login, msgDecoder, post, register)
 
 import Http
 import Json.Decode exposing (Decoder, field, string)
@@ -56,3 +56,8 @@ login =
 register : Endpoint
 register =
     url [ "register" ]
+
+
+confirm : String -> String
+confirm invitation =
+    Url.Builder.relative [ "api", "confirm", invitation ] []

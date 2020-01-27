@@ -33,6 +33,7 @@ pub struct Register {
     pub confirm: String,
 }
 
+
 impl fmt::Display for DBError {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match *self {
@@ -90,10 +91,27 @@ pub async fn register(db: web::Data<DB>, info: Register) -> Result<String, actix
 	web::block(move || {
 		let x: Result<String, DBError> = db.get()
 			.map_err(|e| DBError::PoolError(e))
-			.and_then(|c| get_row(c, "SELECT success, message FROM register($1, $2, $3);", &[&info.username, &info.password, &info.confirm]))
+			.and_then(|c| get_row(c, "SELECT success, message, invitation FROM register($1, $2, $3);", &[&info.username, &info.password, &info.confirm]))
 			.and_then(|row| 
-				match row.get(2) {
-					true => Ok(row.get(3)),
+				match row.get(0) {
+					true => Ok(row.get(2)),
+					false => Err(DBError::AuthenticationError(row.get(1)))
+				})
+			.and_then(|x: String| Ok(x.clone()));
+		x
+	})
+	.await
+	.map(|x| x)
+}
+
+pub async fn confirm(db: web::Data<DB>, info: String) -> Result<String, actix_web::error::BlockingError<DBError>> {
+	web::block(move || {
+		let x: Result<String, DBError> = db.get()
+			.map_err(|e| DBError::PoolError(e))
+			.and_then(|c| get_row(c, "SELECT success, message FROM confirm($1);", &[&info]))
+			.and_then(|row| 
+				match row.get(0) {
+					true => Ok(row.get(1)),
 					false => Err(DBError::AuthenticationError(row.get(1)))
 				})
 			.and_then(|x: String| Ok(x.clone()));
