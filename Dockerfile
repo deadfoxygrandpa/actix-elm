@@ -30,6 +30,8 @@ COPY frontend/. frontend/.
 
 COPY static/. static/.
 
+COPY migrations/. migrations/.
+
 COPY build.rs build.rs
 
 COPY elm.json elm.json
@@ -55,6 +57,8 @@ WORKDIR /home/dokku-test/bin
 COPY --from=cargo-build /usr/src/dokku-test/target/x86_64-unknown-linux-musl/release/dokku-test .
 
 COPY --from=cargo-build /usr/src/dokku-test/static/. static/.
+
+COPY --from=cargo-build /usr/src/dokku-test/migrations/. migrations/.
 
 RUN chown dokku-test:dokku-test dokku-test
 

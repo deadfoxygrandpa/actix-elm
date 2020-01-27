@@ -1,8 +1,8 @@
-use actix_web::{web, App, HttpServer, HttpResponse, Responder, Result};
+use actix_web::{web, App, HttpServer, Responder, Result};
 use actix_files as fs;
 use actix_identity::{Identity, CookieIdentityPolicy, IdentityService};
 use serde::{Serialize, Deserialize};
-use std::env;
+use std::thread;
 
 #[macro_use]
 extern crate lazy_static;
@@ -55,9 +55,20 @@ lazy_static! {
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
 
-    let postgres_url = std::env::var("DATABASE_URL").unwrap();
+    let postgres_url = std::env::var("DATABASE_URL")
+            .unwrap_or_else(|_| "host=192.168.99.100 user=postgres password=docker"
+            .parse().unwrap());
     let db = database::get_pool(&postgres_url).unwrap();
 
+
+    // Make sure the DB is set up
+    let db2 = database::get_pool(&postgres_url).unwrap();
+    thread::spawn(move || { 
+        let x: String = database::set_up(db2.get().unwrap()); 
+        println!("{}", x);
+    });
+
+    // Run the server
     HttpServer::new(move || { 
         App::new()
             .wrap(IdentityService::new(

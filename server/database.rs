@@ -1,9 +1,11 @@
 use std::fmt;
 use std::error;
+use std::fs;
 use postgres::{NoTls};
 use tokio_postgres;
 use r2d2_postgres::PostgresConnectionManager;
 use actix_web::{web};
+use glob::glob;
 
 pub type DB = r2d2::Pool<PostgresConnectionManager<NoTls>>;
 pub type DBPool = r2d2::PooledConnection<PostgresConnectionManager<NoTls>>;
@@ -57,4 +59,17 @@ fn get_row(mut c: DBPool, query: &str, params: &[&(dyn postgres::types::ToSql + 
 
 fn get_from_row(row: tokio_postgres::row::Row) -> Result<String, DBError> {
 	row.try_get(0).map_err(|e| DBError::TokioPostgresError(e))
+}
+
+pub fn set_up(mut db: DBPool) -> String {
+	let statements: String = glob("migrations/**/*.sql")
+		.unwrap()
+		.map(|path| fs::read_to_string(path.unwrap()).unwrap())
+		.collect::<Vec<String>>()
+		.concat();
+
+	match db.batch_execute(statements.as_str()) {
+		Ok(_) => "database is set up".to_string(),
+		Err(e) => e.to_string()
+	}
 }
