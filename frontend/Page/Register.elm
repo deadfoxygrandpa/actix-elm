@@ -111,7 +111,7 @@ viewForm form =
                 []
                 [ Html.label
                     []
-                    [ text "Username" ]
+                    [ text "Email address" ]
                 ]
             , Html.div
                 []
@@ -172,7 +172,7 @@ viewForm form =
             ]
         , case form.reply of
             Just s ->
-                Html.div [] [ Html.a [ Html.Attributes.href <| Api.confirm s ] [ text <| s ] ]
+                Html.div [] [ text s ]
 
             Nothing ->
                 Html.div [] []

@@ -105,7 +105,7 @@ viewForm form =
                 []
                 [ Html.label
                     []
-                    [ text "Username" ]
+                    [ text "Email address" ]
                 ]
             , Html.div
                 []

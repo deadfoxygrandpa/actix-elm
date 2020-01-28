@@ -9,7 +9,7 @@ extern crate lazy_static;
 
 #[allow(dead_code)]
 mod database;
-
+mod email;
 
 // API
 
@@ -36,8 +36,21 @@ async fn login(info: web::Json<database::Login>, id: Identity, db: web::Data<dat
 }
 
 async fn register(info: web::Json<database::Register>, db: web::Data<database::DB>) -> impl Responder {
-    match database::register(db, info.into_inner()).await {
-        Ok(s) => web::Json(Lol { msg: s }),
+    
+    let register_info = info.into_inner();
+
+    match database::register(db, register_info.clone()).await {
+        Ok(s) => {
+            let mailer = email::create_mail_client(MAILGUN_KEY.to_string(), EMAIL_DOMAIN.to_string());
+            let mail = email::create_email(
+                        format!("{}/api", SITE_DOMAIN.to_string()), 
+                        EMAIL_DOMAIN.to_string(),
+                        register_info.username,
+                        s);
+            match email::send_verification_email(mailer, mail).await {
+                Ok(_) => web::Json(Lol { msg: "Verification email sent!".to_string() }),
+                Err(e) => web::Json(Lol { msg: e })
+            }},
         Err(e) => web::Json(Lol { msg: e.to_string() })
     }
 }
@@ -61,8 +74,13 @@ async fn favicon() -> Result<fs::NamedFile> {
 
 // PROGRAM LOGIC
 
+
+// REQUIRED ENV VARIABLES
 lazy_static! {
     static ref SECRET_KEY: String = std::env::var("SECRET_KEY").unwrap_or_else(|_| "7890".repeat(8));
+    static ref MAILGUN_KEY: String = std::env::var("MAILGUN_KEY").unwrap_or_else(|_| "0000".repeat(8));
+    static ref EMAIL_DOMAIN: String = std::env::var("EMAIL_DOMAIN").unwrap_or_else(|_| "example.com".to_string());
+    static ref SITE_DOMAIN: String = std::env::var("SITE_DOMAIN").unwrap_or_else(|_| "example.com".to_string());
 }
 
 #[actix_rt::main]

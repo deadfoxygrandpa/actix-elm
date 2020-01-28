@@ -27,12 +27,17 @@ jobs:
       uses: appleboy/ssh-action@master
       env:
         NAME: test:${{ github.sha }}
+        SECRET_KEY: ${{  secrets.SECRET_KEY }}
+        MAILGUN_KEY: ${{  secrets.MAILGUN_KEY }}
+        EMAIL_DOMAIN: ${{  secrets.EMAIL_DOMAIN }}
+        SITE_DOMAIN: ${{  secrets.SITE_DOMAIN }}
       with:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.REMOTE_PORT }}
-        envs: NAME
+        envs: NAME,SECRET_KEY,MAILGUN_KEY,EMAIL_DOMAIN,SITE_DOMAIN
         script: |
           docker tag $NAME dokku/test:latest
+          dokku config:set test SECRET_KEY=$SECRET_KEY MAILGUN_KEY=$MAILGUN_KEY EMAIL_DOMAIN=$EMAIL_DOMAIN SITE_DOMAIN=$SITE_DOMAIN
           dokku tags:deploy test
