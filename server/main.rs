@@ -43,7 +43,7 @@ async fn register(info: web::Json<database::Register>, db: web::Data<database::D
         Ok(s) => {
             let mailer = email::create_mail_client(MAILGUN_KEY.to_string(), EMAIL_DOMAIN.to_string());
             let mail = email::create_email(
-                        format!("{}/api", SITE_DOMAIN.to_string()), 
+                        format!("{}/api/confirm", SITE_DOMAIN.to_string()), 
                         EMAIL_DOMAIN.to_string(),
                         register_info.username,
                         s);
