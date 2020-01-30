@@ -1,6 +1,7 @@
-module Page.Register exposing (Form, FormMsg(..), Model, Msg(..), init, update, view, viewForm)
+module Page.Register exposing (Form, FormMsg(..), Model, Msg(..), init, subscriptions, update, view, viewForm)
 
 import Api
+import Browser
 import Cmd.Extra exposing (withCmd, withNoCmd)
 import Html exposing (Html, text)
 import Html.Attributes
@@ -42,9 +43,14 @@ type FormMsg
     | SentRegister (Result Http.Error String)
 
 
-init : Model
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
+
+
+init : ( Model, Cmd Msg )
 init =
-    { form = initForm }
+    { form = initForm } |> withNoCmd
 
 
 initForm : Form
@@ -96,9 +102,11 @@ login form =
         }
 
 
-view : Model -> Html Msg
+view : Model -> { title : String, content : Html Msg }
 view model =
-    Html.div [] [ viewForm model.form |> Html.map GotFormMsg ]
+    { title = "Register"
+    , content = Html.div [] [ viewForm model.form |> Html.map GotFormMsg ]
+    }
 
 
 viewForm : Form -> Html FormMsg

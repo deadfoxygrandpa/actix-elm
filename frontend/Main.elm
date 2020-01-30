@@ -2,13 +2,20 @@ module Main exposing (main)
 
 import Api
 import Browser
+import Browser.Navigation exposing (Key)
 import Cmd.Extra exposing (withCmd, withNoCmd)
 import Html exposing (Html, text)
 import Html.Attributes
 import Http
 import Json.Decode exposing (Decoder, field, string)
+import Page
+import Page.Blank
+import Page.Home
 import Page.Login
+import Page.NotFound
 import Page.Register
+import Route
+import Url exposing (Url)
 
 
 
@@ -16,11 +23,13 @@ import Page.Register
 
 
 main =
-    Browser.element
+    Browser.application
         { init = init
         , update = update
         , subscriptions = subscriptions
         , view = view
+        , onUrlChange = ChangedUrl
+        , onUrlRequest = ClickedLink
         }
 
 
@@ -28,60 +37,104 @@ main =
 -- MODEL
 
 
-type alias Model =
-    { hello : Hello
-    , login : Page.Login.Model
-    , register : Page.Register.Model
-    }
+type Model
+    = Redirect Key
+    | NotFound Key
+    | Home Key Page.Home.Model
+    | Login Key Page.Login.Model
+    | Register Key Page.Register.Model
 
 
-type Hello
-    = Failure
-    | Loading
-    | Success String
-
-
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( { hello = Loading, login = Page.Login.init, register = Page.Register.init }
-    , Api.get
-        { endpoint = Api.hello
-        , expect = Http.expectJson GotJson Api.msgDecoder
-        }
-    )
+init : Maybe String -> Url -> Key -> ( Model, Cmd Msg )
+init _ url key =
+    changeRouteTo (Route.fromUrl url) (Redirect key)
 
 
 
 -- UPDATE
 
 
-msgDecoder : Decoder String
-msgDecoder =
-    field "msg" string
-
-
 type Msg
-    = GotJson (Result Http.Error String)
-    | LoginMsg Page.Login.Msg
-    | RegisterMsg Page.Register.Msg
+    = ChangedUrl Url
+    | ClickedLink Browser.UrlRequest
+    | GotHomeMsg Page.Home.Msg
+    | GotLoginMsg Page.Login.Msg
+    | GotRegisterMsg Page.Register.Msg
+
+
+getKey : Model -> Key
+getKey model =
+    case model of
+        Redirect key ->
+            key
+
+        NotFound key ->
+            key
+
+        Home key _ ->
+            key
+
+        Login key _ ->
+            key
+
+        Register key _ ->
+            key
+
+
+changeRouteTo : Maybe Route.Route -> Model -> ( Model, Cmd Msg )
+changeRouteTo maybeRoute model =
+    let
+        key =
+            getKey model
+    in
+    case maybeRoute of
+        Nothing ->
+            NotFound key |> withNoCmd
+
+        Just Route.Root ->
+            model |> withCmd (Route.replaceUrl key Route.Home)
+
+        Just Route.Logout ->
+            model |> withNoCmd
+
+        Just Route.Home ->
+            Page.Home.init |> updateWith GotHomeMsg (Home key)
+
+        Just Route.Login ->
+            Page.Login.init |> updateWith GotLoginMsg (Login key)
+
+        Just Route.Register ->
+            Page.Register.init |> updateWith GotRegisterMsg (Register key)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        GotJson result ->
-            case result of
-                Ok s ->
-                    ( { model | hello = Success s }, Cmd.none )
+    case ( msg, model ) of
+        ( ChangedUrl url, _ ) ->
+            changeRouteTo (Route.fromUrl url) model
 
-                Err _ ->
-                    ( { model | hello = Failure }, Cmd.none )
+        ( ClickedLink urlRequest, _ ) ->
+            case urlRequest of
+                Browser.Internal url ->
+                    model |> withCmd (Browser.Navigation.pushUrl (getKey model) (Url.toString url))
 
-        LoginMsg loginMsg ->
-            updateWith LoginMsg (\m -> { model | login = m }) (Page.Login.update loginMsg model.login)
+                Browser.External url ->
+                    model |> withCmd (Browser.Navigation.load url)
 
-        RegisterMsg registerMsg ->
-            updateWith RegisterMsg (\m -> { model | register = m }) (Page.Register.update registerMsg model.register)
+        ( GotHomeMsg subMsg, Home key subModel ) ->
+            Page.Home.update subMsg subModel
+                |> updateWith GotHomeMsg (Home key)
+
+        ( GotLoginMsg subMsg, Login key subModel ) ->
+            Page.Login.update subMsg subModel
+                |> updateWith GotLoginMsg (Login key)
+
+        ( GotRegisterMsg subMsg, Register key subModel ) ->
+            Page.Register.update subMsg subModel
+                |> updateWith GotRegisterMsg (Register key)
+
+        ( _, _ ) ->
+            model |> withNoCmd
 
 
 updateWith : (subMsg -> Msg) -> (subModel -> Model) -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
@@ -95,30 +148,51 @@ updateWith toMsg toModel ( subModel, subCmd ) =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    case model of
+        NotFound _ ->
+            Sub.none
+
+        Redirect _ ->
+            Sub.none
+
+        Home _ subModel ->
+            Sub.map GotHomeMsg (Page.Home.subscriptions subModel)
+
+        Login _ subModel ->
+            Sub.map GotLoginMsg (Page.Login.subscriptions subModel)
+
+        Register _ subModel ->
+            Sub.map GotRegisterMsg (Page.Register.subscriptions subModel)
 
 
 
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
-    Html.div []
-        [ viewAPIResult model.hello
-        , Html.map LoginMsg (Page.Login.view model.login)
-        , Html.map RegisterMsg (Page.Register.view model.register)
-        ]
-
-
-viewAPIResult : Hello -> Html msg
-viewAPIResult model =
+    let
+        viewPage page toMsg config =
+            let
+                { title, body } =
+                    Page.view page config
+            in
+            { title = title
+            , body = List.map (Html.map toMsg) body
+            }
+    in
     case model of
-        Failure ->
-            text "couldn't contact the api"
+        Redirect key ->
+            Page.view Page.Other Page.Blank.view
 
-        Loading ->
-            text "loading..."
+        NotFound key ->
+            Page.view Page.Other Page.NotFound.view
 
-        Success s ->
-            text s
+        Home key subModel ->
+            viewPage Page.Home GotHomeMsg (Page.Home.view subModel)
+
+        Login key subModel ->
+            viewPage Page.Login GotLoginMsg (Page.Login.view subModel)
+
+        Register key subModel ->
+            viewPage Page.Register GotRegisterMsg (Page.Register.view subModel)

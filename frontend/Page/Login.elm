@@ -1,31 +1,24 @@
-module Page.Login exposing (Form, FormMsg(..), Model, Msg(..), init, update, view, viewForm)
+module Page.Login exposing (FormMsg(..), Model, Msg(..), init, subscriptions, update, view, viewForm)
 
 import Api
+import Browser
+import Browser.Navigation
 import Cmd.Extra exposing (withCmd, withNoCmd)
 import Html exposing (Html, text)
 import Html.Attributes
 import Html.Events
 import Http
 import Json.Encode
+import Route
 
 
 type alias Model =
-    { form : Form }
+    { form : Api.LoginInfo }
 
 
-type alias Form =
-    { username : String
-    , password : String
-    , reply : Maybe String
-    }
-
-
-encode : Form -> Json.Encode.Value
-encode form =
-    Json.Encode.object
-        [ ( "username", Json.Encode.string form.username )
-        , ( "password", Json.Encode.string form.password )
-        ]
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
 
 
 type Msg
@@ -39,12 +32,12 @@ type FormMsg
     | SentLogin (Result Http.Error String)
 
 
-init : Model
+init : ( Model, Cmd Msg )
 init =
-    { form = initForm }
+    { form = initForm } |> withNoCmd
 
 
-initForm : Form
+initForm : Api.LoginInfo
 initForm =
     { username = "", password = "", reply = Nothing }
 
@@ -60,11 +53,11 @@ update msg model =
             { model | form = form_ } |> withCmd (Cmd.map GotFormMsg formMsg_)
 
 
-updateForm : FormMsg -> Form -> ( Form, Cmd FormMsg )
+updateForm : FormMsg -> Api.LoginInfo -> ( Api.LoginInfo, Cmd FormMsg )
 updateForm msg form =
     case msg of
         SubmittedForm ->
-            form |> withCmd (login form)
+            form |> withCmd (Api.attemptLogin form SentLogin)
 
         EnteredUsername s ->
             { form | username = s } |> withNoCmd
@@ -74,6 +67,9 @@ updateForm msg form =
 
         SentLogin rs ->
             case rs of
+                Ok "Success" ->
+                    form |> withCmd (Route.load Route.Home)
+
                 Ok s ->
                     { form | reply = Just s } |> withNoCmd
 
@@ -81,21 +77,14 @@ updateForm msg form =
                     form |> withNoCmd
 
 
-login : Form -> Cmd FormMsg
-login form =
-    Api.post
-        { endpoint = Api.login
-        , body = Http.jsonBody <| encode form
-        , expect = Http.expectJson SentLogin Api.msgDecoder
-        }
-
-
-view : Model -> Html Msg
+view : Model -> { title : String, content : Html Msg }
 view model =
-    Html.div [] [ viewForm model.form |> Html.map GotFormMsg ]
+    { title = "Login"
+    , content = Html.div [] [ viewForm model.form |> Html.map GotFormMsg ]
+    }
 
 
-viewForm : Form -> Html FormMsg
+viewForm : Api.LoginInfo -> Html FormMsg
 viewForm form =
     Html.form
         [ Html.Events.onSubmit SubmittedForm ]

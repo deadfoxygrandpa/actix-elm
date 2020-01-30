@@ -1,4 +1,4 @@
-use actix_web::{web, App, HttpServer, Responder, Result};
+use actix_web::{web, App, HttpServer, HttpResponse, Responder, Result};
 use actix_files as fs;
 use actix_identity::{Identity, CookieIdentityPolicy, IdentityService};
 use serde::{Serialize};
@@ -10,6 +10,7 @@ extern crate lazy_static;
 #[allow(dead_code)]
 mod database;
 mod email;
+mod html;
 
 // API
 
@@ -62,14 +63,20 @@ async fn confirm(info: web::Path<String>, db: web::Data<database::DB>) -> impl R
     }
 }
 
-// STATIC FILES
-
-async fn index() -> Result<fs::NamedFile> {
-    Ok(fs::NamedFile::open("static/index.html")?)
+async fn index(id: Identity) -> impl Responder {
+    let name = id.identity();
+    println!("{:?}", &name);
+    HttpResponse::Ok().body(html::elm_page(&name))
 }
+
+// STATIC FILES
 
 async fn favicon() -> Result<fs::NamedFile> {
     Ok(fs::NamedFile::open("static/favicon.ico")?)
+}
+
+async fn elm() -> Result<fs::NamedFile> {
+    Ok(fs::NamedFile::open("static/elm.js")?)
 }
 
 // PROGRAM LOGIC
@@ -90,7 +97,6 @@ async fn main() -> std::io::Result<()> {
             .unwrap_or_else(|_| "host=192.168.99.100 user=postgres password=docker"
             .parse().unwrap());
     let db = database::get_pool(&postgres_url).unwrap();
-
 
     // Make sure the DB is set up
     let db2 = database::get_pool(&postgres_url).unwrap();
@@ -117,7 +123,10 @@ async fn main() -> std::io::Result<()> {
             .service(web::scope("")
                 .route("/", web::get().to(index))
                 .route("/favicon.ico", web::get().to(favicon))
+                .route("/elm.js", web::get().to(elm))
             )
+            .default_service(
+                web::route().to(index))
     })
     .bind("0.0.0.0:5000")?
     .run()

@@ -1,12 +1,28 @@
-module Api exposing (confirm, get, hello, login, msgDecoder, post, register)
+module Api exposing (LoginInfo, attemptLogin, confirm, get, hello, login, msgDecoder, post, register)
 
 import Http
 import Json.Decode exposing (Decoder, field, string)
+import Json.Encode
 import Url.Builder
 
 
 type Endpoint
     = Endpoint String
+
+
+type alias LoginInfo =
+    { username : String
+    , password : String
+    , reply : Maybe String
+    }
+
+
+encodeLoginInfo : LoginInfo -> Json.Encode.Value
+encodeLoginInfo form =
+    Json.Encode.object
+        [ ( "username", Json.Encode.string form.username )
+        , ( "password", Json.Encode.string form.password )
+        ]
 
 
 msgDecoder : Decoder String
@@ -31,6 +47,15 @@ post :
     -> Cmd msg
 post config =
     Http.post { url = unwrap config.endpoint, body = config.body, expect = config.expect }
+
+
+attemptLogin : LoginInfo -> (Result Http.Error String -> msg) -> Cmd msg
+attemptLogin loginInfo toMsg =
+    post
+        { endpoint = login
+        , body = Http.jsonBody <| encodeLoginInfo loginInfo
+        , expect = Http.expectJson toMsg msgDecoder
+        }
 
 
 unwrap : Endpoint -> String
