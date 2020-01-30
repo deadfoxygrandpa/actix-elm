@@ -1,10 +1,22 @@
 FROM rust as cargo-build
 
+# Install base dependencies
+
 RUN apt-get update
 
 RUN apt-get install musl-tools -y
 
+RUN apt-get -y install nodejs
+
+# uglifyjs
+
+RUN npm install uglify-js -g
+
+# rust
+
 RUN rustup target add x86_64-unknown-linux-musl
+
+# elm
 
 RUN curl -L -o elm.gz https://github.com/elm/compiler/releases/download/0.19.1/binary-for-linux-64-bit.gz
 
@@ -13,6 +25,8 @@ RUN gunzip elm.gz
 RUN chmod +x elm
 
 RUN mv elm /usr/local/bin/
+
+# set up compile environment
 
 WORKDIR /usr/src/dokku-test
 
@@ -43,6 +57,8 @@ RUN rm -f target/x86_64-unknown-linux-musl/release/deps/dokku-test*
 COPY . .
 
 RUN RUSTFLAGS=-Clinker=musl-gcc cargo build --release --target=x86_64-unknown-linux-musl
+
+RUN uglifyjs static/elm.js --compress 'pure_funcs="F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9",pure_getters=true,keep_fargs=false,unsafe_comps=true,unsafe=true,passes=2' --output=static/elm.js && uglifyjs static/elm.js --mangle --output=static/elm.js
 
 # Final Stage
 
