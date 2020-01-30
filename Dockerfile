@@ -78,6 +78,9 @@ COPY --from=cargo-build /usr/src/dokku-test/target/x86_64-unknown-linux-musl/rel
 
 COPY --from=cargo-build /usr/src/dokku-test/static/. static/.
 
+# Copy doesn't seem to overwrite, so I need to remove the file first
+RUN rm static/elm.js
+
 COPY --from=uglify-build /usr/src/dokku-test/static/elm.js static/elm.js
 
 COPY --from=cargo-build /usr/src/dokku-test/migrations/. migrations/.
