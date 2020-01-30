@@ -6,12 +6,6 @@ RUN apt-get update
 
 RUN apt-get install musl-tools -y
 
-RUN apt-get -y install nodejs
-
-# uglifyjs
-
-RUN npm install uglify-js -g
-
 # rust
 
 RUN rustup target add x86_64-unknown-linux-musl
@@ -58,6 +52,16 @@ COPY . .
 
 RUN RUSTFLAGS=-Clinker=musl-gcc cargo build --release --target=x86_64-unknown-linux-musl
 
+# uglifyjs build
+
+FROM node:alpine as uglify-build
+
+RUN npm install uglify-js -g
+
+WORKDIR /usr/src/dokku-test
+
+COPY --from=cargo-build /usr/src/dokku-test/static/elm.js /static/elm.js
+
 RUN uglifyjs static/elm.js --compress 'pure_funcs="F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9",pure_getters=true,keep_fargs=false,unsafe_comps=true,unsafe=true,passes=2' --output=static/elm.js && uglifyjs static/elm.js --mangle --output=static/elm.js
 
 # Final Stage
@@ -73,6 +77,8 @@ WORKDIR /home/dokku-test/bin
 COPY --from=cargo-build /usr/src/dokku-test/target/x86_64-unknown-linux-musl/release/dokku-test .
 
 COPY --from=cargo-build /usr/src/dokku-test/static/. static/.
+
+COPY --from=uglify-build /usr/src/dokku-test/static/elm.js static/elm.js
 
 COPY --from=cargo-build /usr/src/dokku-test/migrations/. migrations/.
 
