@@ -9,6 +9,7 @@ import Html.Attributes exposing (class, for, href, id, placeholder, type_)
 import Html.Events
 import Http
 import Json.Encode
+import Localization
 import Route
 import Style
 

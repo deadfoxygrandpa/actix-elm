@@ -2,6 +2,7 @@ module Style exposing (formButton, formInputField, link, linkAlert)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Localization
 import Route
 import String
 

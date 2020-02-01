@@ -13,6 +13,7 @@ type Route
     | Home
     | Login
     | Register
+    | Empty
 
 
 fromUrl : Url -> Maybe Route
@@ -59,6 +60,9 @@ routeToString route =
 
         Register ->
             "/register"
+
+        Empty ->
+            ""
 
 
 href : Route -> Attribute msg

@@ -4,10 +4,13 @@ import Api
 import Browser
 import Browser.Navigation exposing (Key)
 import Cmd.Extra exposing (withCmd, withNoCmd)
+import Debug
 import Html exposing (Html, text)
 import Html.Attributes
 import Http
 import Json.Decode exposing (Decoder, field, string)
+import Localization
+import Navbar
 import Page
 import Page.Blank
 import Page.Home
@@ -15,6 +18,7 @@ import Page.Login
 import Page.NotFound
 import Page.Register
 import Route
+import Session
 import Url exposing (Url)
 
 
@@ -38,16 +42,16 @@ main =
 
 
 type Model
-    = Redirect Key
-    | NotFound Key
-    | Home Key Page.Home.Model
-    | Login Key Page.Login.Model
-    | Register Key Page.Register.Model
+    = Redirect Session.Session
+    | NotFound Session.Session
+    | Home Session.Session Page.Home.Model
+    | Login Session.Session Page.Login.Model
+    | Register Session.Session Page.Register.Model
 
 
 init : Maybe String -> Url -> Key -> ( Model, Cmd Msg )
-init _ url key =
-    changeRouteTo (Route.fromUrl url) (Redirect key)
+init username url key =
+    changeRouteTo (Route.fromUrl url) (Redirect <| Session.init key Localization.English username)
 
 
 
@@ -60,51 +64,74 @@ type Msg
     | GotHomeMsg Page.Home.Msg
     | GotLoginMsg Page.Login.Msg
     | GotRegisterMsg Page.Register.Msg
+    | GotSessionMsg Session.Msg
 
 
-getKey : Model -> Key
-getKey model =
+getSession : Model -> Session.Session
+getSession model =
     case model of
-        Redirect key ->
-            key
+        Redirect session ->
+            session
 
-        NotFound key ->
-            key
+        NotFound session ->
+            session
 
-        Home key _ ->
-            key
+        Home session _ ->
+            session
 
-        Login key _ ->
-            key
+        Login session _ ->
+            session
 
-        Register key _ ->
-            key
+        Register session _ ->
+            session
+
+
+updateSession : Session.Session -> Model -> Model
+updateSession session model =
+    case model of
+        Redirect _ ->
+            Redirect session
+
+        NotFound _ ->
+            NotFound session
+
+        Home _ subModel ->
+            Home session subModel
+
+        Login _ subModel ->
+            Login session subModel
+
+        Register _ subModel ->
+            Register session subModel
 
 
 changeRouteTo : Maybe Route.Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
     let
-        key =
-            getKey model
+        session =
+            getSession model
     in
     case maybeRoute of
         Nothing ->
-            NotFound key |> withNoCmd
+            NotFound session |> withNoCmd
 
         Just Route.Root ->
-            model |> withCmd (Route.replaceUrl key Route.Home)
+            model |> withCmd (Route.replaceUrl (Session.getKey session) Route.Home)
 
         Just Route.Logout ->
             model |> withNoCmd
 
         Just Route.Home ->
-            Page.Home.init |> updateWith GotHomeMsg (Home key)
+            Page.Home.init |> updateWith GotHomeMsg (Home session)
 
         Just Route.Login ->
-            Page.Login.init |> updateWith GotLoginMsg (Login key)
+            Page.Login.init |> updateWith GotLoginMsg (Login session)
 
         Just Route.Register ->
-            Page.Register.init |> updateWith GotRegisterMsg (Register key)
+            Page.Register.init |> updateWith GotRegisterMsg (Register session)
+
+        Just Route.Empty ->
+            model |> withNoCmd
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -116,22 +143,25 @@ update msg model =
         ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    model |> withCmd (Browser.Navigation.pushUrl (getKey model) (Url.toString url))
+                    model |> withCmd (Browser.Navigation.pushUrl (model |> getSession |> Session.getKey) (Url.toString url))
 
                 Browser.External url ->
                     model |> withCmd (Browser.Navigation.load url)
 
-        ( GotHomeMsg subMsg, Home key subModel ) ->
+        ( GotHomeMsg subMsg, Home session subModel ) ->
             Page.Home.update subMsg subModel
-                |> updateWith GotHomeMsg (Home key)
+                |> updateWith GotHomeMsg (Home session)
 
-        ( GotLoginMsg subMsg, Login key subModel ) ->
+        ( GotLoginMsg subMsg, Login session subModel ) ->
             Page.Login.update subMsg subModel
-                |> updateWith GotLoginMsg (Login key)
+                |> updateWith GotLoginMsg (Login session)
 
-        ( GotRegisterMsg subMsg, Register key subModel ) ->
+        ( GotRegisterMsg subMsg, Register session subModel ) ->
             Page.Register.update subMsg subModel
-                |> updateWith GotRegisterMsg (Register key)
+                |> updateWith GotRegisterMsg (Register session)
+
+        ( GotSessionMsg Session.ChangeLanguage, _ ) ->
+            updateSession (getSession model |> Session.changeLanguage) model |> withNoCmd
 
         ( _, _ ) ->
             model |> withNoCmd
@@ -172,27 +202,37 @@ subscriptions model =
 view : Model -> Browser.Document Msg
 view model =
     let
-        viewPage page toMsg config =
+        viewPage session page toMsg config =
             let
                 { title, body } =
-                    Page.view page config
+                    Page.view session page config
             in
             { title = title
-            , body = List.map (Html.map toMsg) body
+            , body = navbar :: List.map (Html.map toMsg) body
             }
+
+        -- Have to extract Navbar out so it can pass session messages
+        navbar : Html Msg
+        navbar =
+            Html.map navMsg (getSession model |> Navbar.view)
+
+        navMsg msg =
+            case msg of
+                Navbar.SessionMsg sessionMsg ->
+                    GotSessionMsg sessionMsg
     in
     case model of
-        Redirect key ->
-            Page.view Page.Other Page.Blank.view
+        Redirect session ->
+            Page.view session Page.Other Page.Blank.view
 
-        NotFound key ->
-            Page.view Page.Other Page.NotFound.view
+        NotFound session ->
+            Page.view session Page.Other Page.NotFound.view
 
-        Home key subModel ->
-            viewPage Page.Home GotHomeMsg (Page.Home.view subModel)
+        Home session subModel ->
+            viewPage session Page.Home GotHomeMsg (Page.Home.view subModel session)
 
-        Login key subModel ->
-            viewPage Page.Login GotLoginMsg (Page.Login.view subModel)
+        Login session subModel ->
+            viewPage session Page.Login GotLoginMsg (Page.Login.view subModel)
 
-        Register key subModel ->
-            viewPage Page.Register GotRegisterMsg (Page.Register.view subModel)
+        Register session subModel ->
+            viewPage session Page.Register GotRegisterMsg (Page.Register.view subModel)
