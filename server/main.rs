@@ -65,7 +65,6 @@ async fn confirm(info: web::Path<String>, db: web::Data<database::DB>) -> impl R
 
 async fn index(id: Identity) -> impl Responder {
     let name = id.identity();
-    println!("{:?}", &name);
     HttpResponse::Ok().body(html::elm_page(&name))
 }
 
@@ -78,6 +77,16 @@ async fn favicon() -> Result<fs::NamedFile> {
 async fn elm() -> Result<fs::NamedFile> {
     Ok(fs::NamedFile::open("static/elm.js")?)
 }
+
+async fn style() -> Result<fs::NamedFile> {
+    Ok(fs::NamedFile::open("static/style.css")?)
+}
+
+async fn font(info: web::Path<String>) -> Result<fs::NamedFile> {
+    let name = info.into_inner();
+    Ok(fs::NamedFile::open(format!("static/fonts/{}", name))?)
+}
+
 
 // PROGRAM LOGIC
 
@@ -120,10 +129,14 @@ async fn main() -> std::io::Result<()> {
                 .route("/register", web::post().to(register)) 
                 .route("/confirm/{token}", web::get().to(confirm))
             )
+            .service(web::scope("/fonts")
+                .route("/{name}", web::get().to(font))
+            )
             .service(web::scope("")
                 .route("/", web::get().to(index))
                 .route("/favicon.ico", web::get().to(favicon))
                 .route("/elm.js", web::get().to(elm))
+                .route("/style.css", web::get().to(style))
             )
             .default_service(
                 web::route().to(index))

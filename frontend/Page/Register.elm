@@ -4,10 +4,11 @@ import Api
 import Browser
 import Cmd.Extra exposing (withCmd, withNoCmd)
 import Html exposing (Html, text)
-import Html.Attributes
+import Html.Attributes exposing (class)
 import Html.Events
 import Http
 import Json.Encode
+import Style
 
 
 type alias Model =
@@ -19,6 +20,7 @@ type alias Form =
     , password : String
     , confirm : String
     , reply : Maybe String
+    , usernameExists : Bool
     }
 
 
@@ -55,7 +57,7 @@ init =
 
 initForm : Form
 initForm =
-    { username = "", password = "", confirm = "", reply = Nothing }
+    { username = "", password = "", confirm = "", reply = Nothing, usernameExists = False }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -86,8 +88,11 @@ updateForm msg form =
 
         SentRegister rs ->
             case rs of
+                Ok "AuthenticationError(\"Username already exists\")" ->
+                    { form | reply = Just "User already exists", usernameExists = True } |> withNoCmd
+
                 Ok s ->
-                    { form | reply = Just s } |> withNoCmd
+                    { form | reply = Just s, usernameExists = False } |> withNoCmd
 
                 Err _ ->
                     form |> withNoCmd
@@ -111,77 +116,40 @@ view model =
 
 viewForm : Form -> Html FormMsg
 viewForm form =
-    Html.form
-        [ Html.Events.onSubmit SubmittedForm ]
-        [ Html.div
-            []
+    Html.div
+        [ class "w-full max-w-xs container" ]
+        [ Html.form
+            [ Html.Events.onSubmit SubmittedForm ]
             [ Html.div
-                []
-                [ Html.label
-                    []
-                    [ text "Email address" ]
-                ]
-            , Html.div
-                []
-                [ Html.input
+                [ class "bg-white shadow-md rounded px-8 pt-6 pb-8 m-4" ]
+                [ Style.formInputField "Email address"
                     [ Html.Events.onInput EnteredUsername
                     , Html.Attributes.value form.username
+                    , class
+                        (if form.usernameExists then
+                            "border-red-500"
+
+                         else
+                            ""
+                        )
                     ]
-                    []
-                ]
-            ]
-        , Html.div
-            []
-            [ Html.div
-                []
-                [ Html.label
-                    []
-                    [ text "Password" ]
-                ]
-            , Html.div
-                []
-                [ Html.input
+                , Style.formInputField "Password"
                     [ Html.Events.onInput EnteredPassword
                     , Html.Attributes.value form.password
                     , Html.Attributes.type_ "password"
                     ]
-                    []
-                ]
-            ]
-        , Html.div
-            []
-            [ Html.div
-                []
-                [ Html.label
-                    []
-                    [ text "Repeat Password" ]
-                ]
-            , Html.div
-                []
-                [ Html.input
+                , Style.formInputField "Repeat Password"
                     [ Html.Events.onInput EnteredConfirm
                     , Html.Attributes.value form.confirm
                     , Html.Attributes.type_ "password"
                     ]
-                    []
-                ]
-            ]
-        , Html.div
-            []
-            [ Html.div
-                []
-                []
-            , Html.div
-                []
-                [ Html.button
-                    []
-                    [ text "Register" ]
-                ]
-            ]
-        , case form.reply of
-            Just s ->
-                Html.div [] [ text s ]
+                , Style.formButton "Register" []
+                , case form.reply of
+                    Just s ->
+                        Html.div [ class "text-sm text-red-500 italic" ] [ text s ]
 
-            Nothing ->
-                Html.div [] []
+                    Nothing ->
+                        Html.div [] []
+                ]
+            ]
         ]

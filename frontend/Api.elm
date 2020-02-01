@@ -1,4 +1,4 @@
-module Api exposing (LoginInfo, attemptLogin, confirm, get, hello, login, msgDecoder, post, register)
+module Api exposing (LoginInfo, attemptLogin, confirm, get, hello, initLoginInfo, login, msgDecoder, post, register)
 
 import Http
 import Json.Decode exposing (Decoder, field, string)
@@ -14,7 +14,13 @@ type alias LoginInfo =
     { username : String
     , password : String
     , reply : Maybe String
+    , wrongPassword : Bool
     }
+
+
+initLoginInfo : LoginInfo
+initLoginInfo =
+    { username = "", password = "", reply = Nothing, wrongPassword = False }
 
 
 encodeLoginInfo : LoginInfo -> Json.Encode.Value

@@ -10,3 +10,12 @@ Cargo.lock
 repl-temp-*
 /static/index.html
 /static/elm.js
+
+# Node
+
+/node_modules/
+purgecss*
+package-lock.json
+
+# Other
+static/style.css

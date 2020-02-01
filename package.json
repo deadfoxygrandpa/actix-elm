@@ -1,0 +1,24 @@
+{
+  "name": "actix-elm",
+  "version": "1.0.0",
+  "description": "Builds the css for this project using tailwind",
+  "main": "",
+  "scripts": {
+    "build:css": "tailwind build frontend/style.css -o static/style.css",
+    "build:elm": "elm make frontend/Main.elm --output=static/elm.js --optimize",
+    "build": "npm run build:css && npm run build:elm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deadfoxygrandpa/actix-elm.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/deadfoxygrandpa/actix-elm/issues"
+  },
+  "homepage": "https://github.com/deadfoxygrandpa/actix-elm#readme",
+  "dependencies": {
+    "tailwindcss": "^1.1.4"
+  }
+}
