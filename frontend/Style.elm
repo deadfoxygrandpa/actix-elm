@@ -1,7 +1,8 @@
-module Style exposing (formButton, formInputField, link)
+module Style exposing (formButton, formInputField, link, linkAlert)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Route
 import String
 
 
@@ -13,8 +14,8 @@ import String
 -- class [hover]
 
 
-formInputField : String -> List (Attribute msg) -> Html msg
-formInputField label attributes =
+formInputField : String -> Maybe String -> List (Attribute msg) -> Html msg
+formInputField label error attributes =
     let
         classes =
             [ class "shadow-md appearance-none border rounded w-full py-2 px-3"
@@ -23,6 +24,14 @@ formInputField label attributes =
 
         attrs =
             classes ++ attributes
+
+        errorText =
+            case error of
+                Nothing ->
+                    " "
+
+                Just s ->
+                    s
     in
     Html.div
         [ class "mb-4" ]
@@ -34,6 +43,9 @@ formInputField label attributes =
         , Html.input
             attrs
             []
+        , Html.span
+            [ class "text-xs text-red-500 italic" ]
+            [ text errorText ]
         ]
 
 
@@ -65,3 +77,19 @@ link =
             ]
     in
     class <| String.join " " classes
+
+
+linkAlert : String -> String -> Route.Route -> Html msg
+linkAlert label linkText route =
+    Html.div
+        [ class "w-full max-w-xs" ]
+        [ Html.div
+            [ class "text-center text-sm m-4 bg-white p-2 shadow-md rounded" ]
+            [ span [] [ text label ]
+            , a
+                [ link
+                , Route.href route
+                ]
+                [ text linkText ]
+            ]
+        ]

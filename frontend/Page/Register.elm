@@ -8,6 +8,9 @@ import Html.Attributes exposing (class)
 import Html.Events
 import Http
 import Json.Encode
+import List
+import Route
+import String
 import Style
 
 
@@ -21,13 +24,18 @@ type alias Form =
     , confirm : String
     , reply : Maybe String
     , usernameExists : Bool
+    , validationErrors : List ValidationError
     }
 
 
 encode : Form -> Json.Encode.Value
 encode form =
+    let
+        username =
+            form.username |> String.toLower |> String.trim
+    in
     Json.Encode.object
-        [ ( "username", Json.Encode.string form.username )
+        [ ( "username", Json.Encode.string username )
         , ( "password", Json.Encode.string form.password )
         , ( "confirm", Json.Encode.string form.confirm )
         ]
@@ -57,7 +65,7 @@ init =
 
 initForm : Form
 initForm =
-    { username = "", password = "", confirm = "", reply = Nothing, usernameExists = False }
+    { username = "", password = "", confirm = "", reply = Nothing, usernameExists = False, validationErrors = [] }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -75,7 +83,12 @@ updateForm : FormMsg -> Form -> ( Form, Cmd FormMsg )
 updateForm msg form =
     case msg of
         SubmittedForm ->
-            form |> withCmd (login form)
+            case validateForm form of
+                [] ->
+                    form |> withCmd (login form)
+
+                errors ->
+                    { form | validationErrors = errors } |> withNoCmd
 
         EnteredUsername s ->
             { form | username = s } |> withNoCmd
@@ -116,6 +129,16 @@ view model =
 
 viewForm : Form -> Html FormMsg
 viewForm form =
+    let
+        ( invalidUsername, invalidUsernameText ) =
+            showError InvalidUsername form.validationErrors
+
+        ( passwordTooShort, passwordTooShortText ) =
+            showError PasswordTooShort form.validationErrors
+
+        ( passwordsDontMatch, passwordsDontMatchText ) =
+            showError PasswordsDontMatch form.validationErrors
+    in
     Html.div
         [ class "w-full max-w-xs container" ]
         [ Html.form
@@ -123,25 +146,24 @@ viewForm form =
             [ Html.div
                 [ class "bg-white shadow-md rounded px-8 pt-6 pb-8 m-4" ]
                 [ Style.formInputField "Email address"
+                    invalidUsernameText
                     [ Html.Events.onInput EnteredUsername
                     , Html.Attributes.value form.username
-                    , class
-                        (if form.usernameExists then
-                            "border-red-500"
-
-                         else
-                            ""
-                        )
+                    , highlightError (form.usernameExists || invalidUsername)
                     ]
                 , Style.formInputField "Password"
+                    passwordTooShortText
                     [ Html.Events.onInput EnteredPassword
                     , Html.Attributes.value form.password
                     , Html.Attributes.type_ "password"
+                    , highlightError passwordTooShort
                     ]
                 , Style.formInputField "Repeat Password"
+                    passwordsDontMatchText
                     [ Html.Events.onInput EnteredConfirm
                     , Html.Attributes.value form.confirm
                     , Html.Attributes.type_ "password"
+                    , highlightError passwordsDontMatch
                     ]
                 , Style.formButton "Register" []
                 , case form.reply of
@@ -151,5 +173,84 @@ viewForm form =
                     Nothing ->
                         Html.div [] []
                 ]
+            , Style.linkAlert "Have an account?" "Sign in." Route.Login
             ]
         ]
+
+
+highlightError : Bool -> Html.Attribute msg
+highlightError bool =
+    if not bool then
+        class ""
+
+    else
+        class "border-red-500"
+
+
+showError : ValidationError -> List ValidationError -> ( Bool, Maybe String )
+showError error errors =
+    if List.member error errors then
+        ( True, Just (toStr error) )
+
+    else
+        ( False, Nothing )
+
+
+type ValidationError
+    = InvalidUsername
+    | PasswordTooShort
+    | PasswordsDontMatch
+
+
+toStr : ValidationError -> String
+toStr e =
+    case e of
+        InvalidUsername ->
+            "Username is not a valid email address"
+
+        PasswordTooShort ->
+            "Password must be 8 or more characters"
+
+        PasswordsDontMatch ->
+            "Passwords don't match"
+
+
+validateForm : Form -> List ValidationError
+validateForm form =
+    justs
+        [ validateUsername form.username
+        , validatePassword form.password
+        , validateConfirm form.password form.confirm
+        ]
+
+
+validateUsername : String -> Maybe ValidationError
+validateUsername username =
+    if String.contains "@" username && String.length username > 3 then
+        Nothing
+
+    else
+        Just InvalidUsername
+
+
+validatePassword : String -> Maybe ValidationError
+validatePassword password =
+    if String.length password < 8 then
+        Just PasswordTooShort
+
+    else
+        Nothing
+
+
+validateConfirm : String -> String -> Maybe ValidationError
+validateConfirm password confirm =
+    if password /= confirm then
+        Just PasswordsDontMatch
+
+    else
+        Nothing
+
+
+justs : List (Maybe a) -> List a
+justs maybes =
+    List.filterMap identity maybes

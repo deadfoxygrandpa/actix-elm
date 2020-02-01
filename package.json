@@ -5,7 +5,7 @@
   "main": "",
   "scripts": {
     "build:css": "tailwind build frontend/style.css -o static/style.css",
-    "build:elm": "elm make frontend/Main.elm --output=static/elm.js --optimize",
+    "build:elm": "elm make frontend/Main.elm --output=static/elm.js",
     "build": "npm run build:css && npm run build:elm"
   },
   "repository": {

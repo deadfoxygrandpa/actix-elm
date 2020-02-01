@@ -98,10 +98,12 @@ viewForm form =
             , class "bg-white shadow-md rounded px-8 pt-6 pb-8 m-4"
             ]
             [ Style.formInputField "Email address"
+                Nothing
                 [ Html.Events.onInput EnteredUsername
                 , Html.Attributes.value form.username
                 ]
             , Style.formInputField "Password"
+                Nothing
                 [ Html.Events.onInput EnteredPassword
                 , Html.Attributes.value form.password
                 , Html.Attributes.type_ "password"
@@ -121,16 +123,5 @@ viewForm form =
                 Nothing ->
                     Html.div [] []
             ]
-        , Html.div
-            [ class "w-full max-w-xs" ]
-            [ Html.div
-                [ class "text-center text-sm m-4 bg-white p-2 shadow-md rounded" ]
-                [ span [] [ text "Are you new?" ]
-                , a
-                    [ Style.link
-                    , Route.href Route.Register
-                    ]
-                    [ text "Create an account." ]
-                ]
-            ]
+        , Style.linkAlert "Are you new?" "Create an account." Route.Register
         ]
