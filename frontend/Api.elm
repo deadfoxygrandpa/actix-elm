@@ -25,8 +25,12 @@ initLoginInfo =
 
 encodeLoginInfo : LoginInfo -> Json.Encode.Value
 encodeLoginInfo form =
+    let
+        username =
+            form.username |> String.toLower |> String.trim
+    in
     Json.Encode.object
-        [ ( "username", Json.Encode.string form.username )
+        [ ( "username", Json.Encode.string username )
         , ( "password", Json.Encode.string form.password )
         ]
 
