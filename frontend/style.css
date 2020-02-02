@@ -1,3 +1,4 @@
+/* purgecss start ignore */
 @tailwind base;
 
 /* noto-sans-sc-100 - latin_chinese-simplified */
@@ -43,4 +44,5 @@ body {
 
 @tailwind components;
 
+/* purgecss end ignore */
 @tailwind utilities;

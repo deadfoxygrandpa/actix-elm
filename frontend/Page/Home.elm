@@ -59,3 +59,10 @@ viewLoggedOut =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
+
+
+x : Html msg
+x =
+    div
+        [ class "whatever" ]
+        []
