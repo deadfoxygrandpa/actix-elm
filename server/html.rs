@@ -15,10 +15,12 @@ where T: Serialize
 <meta charset=\"utf-8\">\
 <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
 <title>App</title>\
+<link href=\"fonts/noto-sans-sc-v10-latin_chinese-simplified-900.woff2\"rel=\"preload\">\
+<link href=\"fonts/noto-sans-sc-v10-latin_chinese-simplified-regular.woff2\"rel=\"preload\">\
 <link href=\"style.css\" rel=\"stylesheet\">\
 <script src=\"elm.js\"></script>\
 </head>\
-<body class=\"bg-gray-100\">\
+<body>\
 <script>\
 var app=Elm.Main.init({{flags:{f}}});\
 </script>\
