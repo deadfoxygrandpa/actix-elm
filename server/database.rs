@@ -141,6 +141,12 @@ pub fn set_up(mut db: DBPool) -> String {
         .collect::<Vec<String>>()
         .concat();
 
+    for path in glob("migrations/**/*.sql").unwrap() {
+        println!("found sql file: {:?}", path.unwrap());
+    }
+
+    println!("executing sql...");
+
     match db.batch_execute(statements.as_str()) {
         Ok(_) => "database is set up".to_string(),
         Err(e) => e.to_string()
