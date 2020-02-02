@@ -6,6 +6,7 @@
   "scripts": {
     "build:css": "tailwind build frontend/style.css -o static/style.css",
     "build:elm": "elm make frontend/Main.elm --output=static/elm.js",
+    "purgecss": "purgecss -c purgecss.config.js -o static/",
     "build": "npm run build:css && npm run build:elm"
   },
   "repository": {

@@ -25,11 +25,11 @@ view session =
     in
     Html.nav
         [ class "flex items-baseline items-center justify-center flex-wrap bg-black p-6"
-        , class "text-center text-white"
+        , class "text-center text-white tracking-tighter"
         ]
         [ h1
             [ class "mx-4 md:mx-24 lg:mx-56 xl:mx-64 w-40"
-            , class "font-bold text-3xl tracking-tight"
+            , class "font-bold text-3xl tracking-tighter select-none"
             ]
             [ text_ "siteName" ]
         , div

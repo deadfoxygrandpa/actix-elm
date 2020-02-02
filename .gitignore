@@ -14,7 +14,6 @@ repl-temp-*
 # Node
 
 /node_modules/
-purgecss*
 package-lock.json
 
 # Other
