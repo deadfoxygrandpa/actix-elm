@@ -10,12 +10,15 @@ import Http
 import Json.Encode
 import List
 import Route
+import Session
 import String
 import Style
 
 
 type alias Model =
-    { form : Form }
+    { form : Form
+    , session : Session.Session
+    }
 
 
 type alias Form =
@@ -58,9 +61,17 @@ subscriptions model =
     Sub.none
 
 
-init : ( Model, Cmd Msg )
-init =
-    { form = initForm } |> withNoCmd
+init : Session.Session -> ( Model, Cmd Msg )
+init session =
+    { form = initForm
+    , session = session
+    }
+        |> (if Session.loggedIn session then
+                withCmd (Session.getKey session |> Route.replaceToHome)
+
+            else
+                withNoCmd
+           )
 
 
 initForm : Form

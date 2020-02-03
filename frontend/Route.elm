@@ -1,4 +1,4 @@
-module Route exposing (Route(..), fromUrl, href, load, replaceUrl)
+module Route exposing (Route(..), fromUrl, href, load, replaceToHome, replaceUrl)
 
 import Browser.Navigation exposing (Key)
 import Html exposing (Attribute)
@@ -41,6 +41,11 @@ fromUrl url =
 replaceUrl : Key -> Route -> Cmd msg
 replaceUrl key route =
     Browser.Navigation.replaceUrl key (routeToString route)
+
+
+replaceToHome : Key -> Cmd msg
+replaceToHome key =
+    replaceUrl key Home
 
 
 routeToString : Route -> String

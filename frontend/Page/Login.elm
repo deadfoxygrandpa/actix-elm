@@ -11,11 +11,14 @@ import Http
 import Json.Encode
 import Localization
 import Route
+import Session
 import Style
 
 
 type alias Model =
-    { form : Api.LoginInfo }
+    { form : Api.LoginInfo
+    , session : Session.Session
+    }
 
 
 subscriptions : Model -> Sub Msg
@@ -34,9 +37,17 @@ type FormMsg
     | SentLogin (Result Http.Error String)
 
 
-init : ( Model, Cmd Msg )
-init =
-    { form = Api.initLoginInfo } |> withNoCmd
+init : Session.Session -> ( Model, Cmd Msg )
+init session =
+    { form = Api.initLoginInfo
+    , session = session
+    }
+        |> (if Session.loggedIn session then
+                withCmd (Route.replaceUrl (Session.getKey session) Route.Home)
+
+            else
+                withNoCmd
+           )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

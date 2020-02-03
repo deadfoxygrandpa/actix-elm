@@ -63,6 +63,17 @@ async fn confirm(info: web::Path<String>, db: web::Data<database::DB>) -> impl R
     }
 }
 
+async fn is_admin(db: web::Data<database::DB>, id: Identity) -> impl Responder {
+    match id.identity() {
+        Some(username) => 
+            match database::check_admin(db, username).await {
+                Ok(b) => web::Json(b),
+                Err(_) => web::Json(false)
+            },
+        None => web::Json(false)
+    }
+}
+
 async fn index(id: Identity) -> impl Responder {
     let name = id.identity();
     HttpResponse::Ok().body(html::elm_page(&name))
@@ -120,7 +131,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(IdentityService::new(
                 CookieIdentityPolicy::new(SECRET_KEY.as_bytes())
                     .name("auth-cookie")
-                    .max_age(60)
+                    .max_age(3600)
                     .secure(false)))
             .data(db.clone())
             .service(web::scope("/api")
@@ -128,6 +139,7 @@ async fn main() -> std::io::Result<()> {
                 .route("/login", web::post().to(login))
                 .route("/register", web::post().to(register)) 
                 .route("/confirm/{token}", web::get().to(confirm))
+                .route("/is_admin", web::get().to(is_admin))
             )
             .service(web::scope("/fonts")
                 .route("/{name}", web::get().to(font))

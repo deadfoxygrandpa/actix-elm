@@ -122,6 +122,18 @@ pub async fn confirm(db: web::Data<DB>, info: String) -> Result<String, actix_we
     .map(|x| x)
 }
 
+pub async fn check_admin(db: web::Data<DB>, username: String) -> Result<bool, actix_web::error::BlockingError<DBError>> {
+    web::block(move || {
+        let x: Result<bool, DBError> = db.get()
+            .map_err(|e| DBError::PoolError(e))
+            .and_then(|c| get_row(c, "SELECT check_admin($1);", &[&username]))
+            .and_then(|row| Ok(row.get(0)));
+        x    
+    })
+    .await
+    .map(|x| x)
+}
+
 // HELPERS
 
 fn get_row(mut c: DBPool, query: &str, params: &[&(dyn postgres::types::ToSql + Sync)]) -> Result<postgres::row::Row, DBError> {

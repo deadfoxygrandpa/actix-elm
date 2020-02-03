@@ -45,8 +45,8 @@ type Model
     = Redirect Session.Session
     | NotFound Session.Session
     | Home Session.Session Page.Home.Model
-    | Login Session.Session Page.Login.Model
-    | Register Session.Session Page.Register.Model
+    | Login Page.Login.Model
+    | Register Page.Register.Model
 
 
 init : Maybe String -> Url -> Key -> ( Model, Cmd Msg )
@@ -79,11 +79,11 @@ getSession model =
         Home session _ ->
             session
 
-        Login session _ ->
-            session
+        Login subModel ->
+            subModel.session
 
-        Register session _ ->
-            session
+        Register subModel ->
+            subModel.session
 
 
 updateSession : Session.Session -> Model -> Model
@@ -98,11 +98,11 @@ updateSession session model =
         Home _ subModel ->
             Home session subModel
 
-        Login _ subModel ->
-            Login session subModel
+        Login subModel ->
+            Login { subModel | session = session }
 
-        Register _ subModel ->
-            Register session subModel
+        Register subModel ->
+            Register { subModel | session = session }
 
 
 changeRouteTo : Maybe Route.Route -> Model -> ( Model, Cmd Msg )
@@ -125,10 +125,10 @@ changeRouteTo maybeRoute model =
             Page.Home.init |> updateWith GotHomeMsg (Home session)
 
         Just Route.Login ->
-            Page.Login.init |> updateWith GotLoginMsg (Login session)
+            Page.Login.init session |> updateWith GotLoginMsg Login
 
         Just Route.Register ->
-            Page.Register.init |> updateWith GotRegisterMsg (Register session)
+            Page.Register.init session |> updateWith GotRegisterMsg Register
 
         Just Route.Empty ->
             model |> withNoCmd
@@ -152,13 +152,13 @@ update msg model =
             Page.Home.update subMsg subModel
                 |> updateWith GotHomeMsg (Home session)
 
-        ( GotLoginMsg subMsg, Login session subModel ) ->
+        ( GotLoginMsg subMsg, Login subModel ) ->
             Page.Login.update subMsg subModel
-                |> updateWith GotLoginMsg (Login session)
+                |> updateWith GotLoginMsg Login
 
-        ( GotRegisterMsg subMsg, Register session subModel ) ->
+        ( GotRegisterMsg subMsg, Register subModel ) ->
             Page.Register.update subMsg subModel
-                |> updateWith GotRegisterMsg (Register session)
+                |> updateWith GotRegisterMsg Register
 
         ( GotSessionMsg Session.ChangeLanguage, _ ) ->
             updateSession (getSession model |> Session.changeLanguage) model |> withNoCmd
@@ -188,10 +188,10 @@ subscriptions model =
         Home _ subModel ->
             Sub.map GotHomeMsg (Page.Home.subscriptions subModel)
 
-        Login _ subModel ->
+        Login subModel ->
             Sub.map GotLoginMsg (Page.Login.subscriptions subModel)
 
-        Register _ subModel ->
+        Register subModel ->
             Sub.map GotRegisterMsg (Page.Register.subscriptions subModel)
 
 
@@ -202,10 +202,10 @@ subscriptions model =
 view : Model -> Browser.Document Msg
 view model =
     let
-        viewPage session page toMsg config =
+        viewPage page toMsg config =
             let
                 { title, body } =
-                    Page.view session page config
+                    Page.view (getSession model) page config
             in
             { title = title
             , body = navbar :: List.map (Html.map toMsg) body
@@ -229,10 +229,10 @@ view model =
             Page.view session Page.Other Page.NotFound.view
 
         Home session subModel ->
-            viewPage session Page.Home GotHomeMsg (Page.Home.view subModel session)
+            viewPage Page.Home GotHomeMsg (Page.Home.view subModel session)
 
-        Login session subModel ->
-            viewPage session Page.Login GotLoginMsg (Page.Login.view subModel)
+        Login subModel ->
+            viewPage Page.Login GotLoginMsg (Page.Login.view subModel)
 
-        Register session subModel ->
-            viewPage session Page.Register GotRegisterMsg (Page.Register.view subModel)
+        Register subModel ->
+            viewPage Page.Register GotRegisterMsg (Page.Register.view subModel)
