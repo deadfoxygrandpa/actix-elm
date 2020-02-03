@@ -74,6 +74,11 @@ async fn is_admin(db: web::Data<database::DB>, id: Identity) -> impl Responder {
     }
 }
 
+async fn logout(id: Identity) -> impl Responder {
+    id.forget();
+    HttpResponse::Ok().finish()
+}
+
 async fn index(id: Identity) -> impl Responder {
     let name = id.identity();
     HttpResponse::Ok().body(html::elm_page(&name))
@@ -140,6 +145,7 @@ async fn main() -> std::io::Result<()> {
                 .route("/register", web::post().to(register)) 
                 .route("/confirm/{token}", web::get().to(confirm))
                 .route("/is_admin", web::get().to(is_admin))
+                .route("/logout", web::post().to(logout))
             )
             .service(web::scope("/fonts")
                 .route("/{name}", web::get().to(font))

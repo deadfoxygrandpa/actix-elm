@@ -4,7 +4,6 @@ import Api
 import Browser
 import Browser.Navigation exposing (Key)
 import Cmd.Extra exposing (withCmd, withNoCmd)
-import Debug
 import Html exposing (Html, text)
 import Html.Attributes
 import Http
@@ -15,6 +14,7 @@ import Page
 import Page.Blank
 import Page.Home
 import Page.Login
+import Page.Logout
 import Page.NotFound
 import Page.Register
 import Route
@@ -46,6 +46,7 @@ type Model
     | NotFound Session.Session
     | Home Session.Session Page.Home.Model
     | Login Page.Login.Model
+    | Logout Page.Logout.Model
     | Register Page.Register.Model
 
 
@@ -65,6 +66,7 @@ type Msg
     | GotLoginMsg Page.Login.Msg
     | GotRegisterMsg Page.Register.Msg
     | GotSessionMsg Session.Msg
+    | GotLogoutMsg Page.Logout.Msg
 
 
 getSession : Model -> Session.Session
@@ -80,6 +82,9 @@ getSession model =
             session
 
         Login subModel ->
+            subModel.session
+
+        Logout subModel ->
             subModel.session
 
         Register subModel ->
@@ -101,6 +106,9 @@ updateSession session model =
         Login subModel ->
             Login { subModel | session = session }
 
+        Logout subModel ->
+            Logout { subModel | session = session }
+
         Register subModel ->
             Register { subModel | session = session }
 
@@ -119,7 +127,7 @@ changeRouteTo maybeRoute model =
             model |> withCmd (Route.replaceUrl (Session.getKey session) Route.Home)
 
         Just Route.Logout ->
-            model |> withNoCmd
+            Page.Logout.init session |> updateWith GotLogoutMsg Logout
 
         Just Route.Home ->
             Page.Home.init |> updateWith GotHomeMsg (Home session)
@@ -156,6 +164,10 @@ update msg model =
             Page.Login.update subMsg subModel
                 |> updateWith GotLoginMsg Login
 
+        ( GotLogoutMsg subMsg, Logout subModel ) ->
+            Page.Logout.update subMsg subModel
+                |> updateWith GotLogoutMsg Logout
+
         ( GotRegisterMsg subMsg, Register subModel ) ->
             Page.Register.update subMsg subModel
                 |> updateWith GotRegisterMsg Register
@@ -191,6 +203,9 @@ subscriptions model =
         Login subModel ->
             Sub.map GotLoginMsg (Page.Login.subscriptions subModel)
 
+        Logout subModel ->
+            Sub.map GotLogoutMsg (Page.Logout.subscriptions subModel)
+
         Register subModel ->
             Sub.map GotRegisterMsg (Page.Register.subscriptions subModel)
 
@@ -211,6 +226,9 @@ view model =
             , body = navbar :: List.map (Html.map toMsg) body
             }
 
+        addNavbar document =
+            { document | body = navbar :: document.body }
+
         -- Have to extract Navbar out so it can pass session messages
         navbar : Html Msg
         navbar =
@@ -226,13 +244,16 @@ view model =
             Page.view session Page.Other Page.Blank.view
 
         NotFound session ->
-            Page.view session Page.Other Page.NotFound.view
+            Page.view session Page.Other Page.NotFound.view |> addNavbar
 
         Home session subModel ->
             viewPage Page.Home GotHomeMsg (Page.Home.view subModel session)
 
         Login subModel ->
             viewPage Page.Login GotLoginMsg (Page.Login.view subModel)
+
+        Logout subModel ->
+            viewPage Page.Logout GotLogoutMsg (Page.Logout.view subModel)
 
         Register subModel ->
             viewPage Page.Register GotRegisterMsg (Page.Register.view subModel)

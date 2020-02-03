@@ -1,4 +1,4 @@
-module Style exposing (formButton, formInputField, link, linkAlert)
+module Style exposing (bodyAlert, formButton, formInputField, link, linkAlert)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -94,3 +94,10 @@ linkAlert label linkText route =
                 [ text linkText ]
             ]
         ]
+
+
+bodyAlert : Html msg -> Html msg
+bodyAlert content =
+    Html.div
+        [ class "container max-w-sm text-center bg-white shadow-md rounded my-4 p-6" ]
+        [ content ]

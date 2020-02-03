@@ -1,4 +1,4 @@
-module Session exposing (Msg(..), Session(..), changeLanguage, getKey, getLanguage, getUsername, getUsernameUnsafe, init, loggedIn)
+module Session exposing (Msg(..), Session(..), changeLanguage, getKey, getLanguage, getUsername, getUsernameUnsafe, init, loggedIn, logout)
 
 import Browser.Navigation exposing (Key)
 import Localization exposing (Language)
@@ -54,6 +54,11 @@ getUsername (Session _ _ username) =
 getUsernameUnsafe : Session -> String
 getUsernameUnsafe session =
     getUsername session |> Maybe.withDefault ""
+
+
+logout : Session -> Session
+logout (Session key lang _) =
+    init key lang Nothing
 
 
 loggedIn : Session -> Bool

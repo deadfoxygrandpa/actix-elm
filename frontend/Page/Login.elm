@@ -35,6 +35,7 @@ type FormMsg
     | EnteredUsername String
     | EnteredPassword String
     | SentLogin (Result Http.Error String)
+    | LoggedIn
 
 
 init : Session.Session -> ( Model, Cmd Msg )
@@ -76,7 +77,7 @@ updateForm msg form =
         SentLogin rs ->
             case rs of
                 Ok "Success" ->
-                    { form | wrongPassword = False } |> withCmd (Route.load Route.Home)
+                    { form | wrongPassword = False, pageMessage = Just "Success." } |> withCmd (Api.delay 3000 LoggedIn)
 
                 Ok "AuthenticationError(\"Wrong password\")" ->
                     { form | reply = Just "Wrong password.", wrongPassword = True } |> withNoCmd
@@ -92,6 +93,9 @@ updateForm msg form =
 
                 Err _ ->
                     form |> withNoCmd
+
+        LoggedIn ->
+            form |> withCmd (Route.load Route.Home)
 
 
 view : Model -> { title : String, content : Html Msg }
@@ -131,6 +135,12 @@ viewForm form =
             , case form.reply of
                 Just s ->
                     Html.div [ class "text-sm text-red-500 italic" ] [ text s ]
+
+                Nothing ->
+                    Html.div [] []
+            , case form.pageMessage of
+                Just s ->
+                    Html.div [ class "text-sm italic" ] [ text s ]
 
                 Nothing ->
                     Html.div [] []

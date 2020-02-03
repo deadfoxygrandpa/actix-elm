@@ -46,7 +46,7 @@ view session =
             ]
             [ a [ hiddenWhenLoggedIn session, class "hover:text-gray-300 mr-2", Route.href Route.Login ] [ text_ "login" ]
             , a [ hiddenWhenLoggedIn session, class "hover:text-gray-300 ml-2", Route.href Route.Register ] [ text_ "Register" ]
-            , a [ hiddenWhenLoggedOut session, class "hover:text-gray-300" ] [ text "Logout" ]
+            , a [ hiddenWhenLoggedOut session, class "hover:text-gray-300", Route.href Route.Logout ] [ text "Logout" ]
             ]
         ]
 

@@ -5,6 +5,7 @@ import Cmd.Extra exposing (withCmd, withNoCmd)
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import Session exposing (..)
+import Style
 
 
 type Model
@@ -31,14 +32,13 @@ view : Model -> Session -> { title : String, content : Html Msg }
 view model session =
     { title = "Home"
     , content =
-        div
-            [ class "container max-w-sm text-center bg-white shadow-md rounded my-4 pt-8 pb-6" ]
-            [ if loggedIn session then
+        Style.bodyAlert
+            (if loggedIn session then
                 viewLoggedIn (getUsernameUnsafe session)
 
-              else
+             else
                 viewLoggedOut
-            ]
+            )
     }
 
 

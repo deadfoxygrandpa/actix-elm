@@ -1,8 +1,10 @@
-module Api exposing (LoginInfo, attemptLogin, confirm, get, hello, initLoginInfo, login, msgDecoder, post, register)
+module Api exposing (LoginInfo, attemptLogin, attemptLogout, confirm, delay, get, hello, initLoginInfo, login, logout, msgDecoder, post, register)
 
 import Http
 import Json.Decode exposing (Decoder, field, string)
 import Json.Encode
+import Process
+import Task
 import Url.Builder
 
 
@@ -14,13 +16,19 @@ type alias LoginInfo =
     { username : String
     , password : String
     , reply : Maybe String
+    , pageMessage : Maybe String
     , wrongPassword : Bool
     }
 
 
 initLoginInfo : LoginInfo
 initLoginInfo =
-    { username = "", password = "", reply = Nothing, wrongPassword = False }
+    { username = ""
+    , password = ""
+    , reply = Nothing
+    , pageMessage = Nothing
+    , wrongPassword = False
+    }
 
 
 encodeLoginInfo : LoginInfo -> Json.Encode.Value
@@ -68,6 +76,15 @@ attemptLogin loginInfo toMsg =
         }
 
 
+attemptLogout : (Result Http.Error () -> msg) -> Cmd msg
+attemptLogout toMsg =
+    post
+        { endpoint = logout
+        , body = Http.emptyBody
+        , expect = Http.expectWhatever toMsg
+        }
+
+
 unwrap : Endpoint -> String
 unwrap (Endpoint s) =
     s
@@ -88,6 +105,11 @@ login =
     url [ "login" ]
 
 
+logout : Endpoint
+logout =
+    url [ "logout" ]
+
+
 register : Endpoint
 register =
     url [ "register" ]
@@ -96,3 +118,8 @@ register =
 confirm : String -> String
 confirm invitation =
     Url.Builder.relative [ "api", "confirm", invitation ] []
+
+
+delay : Float -> msg -> Cmd msg
+delay ms msg =
+    Task.perform (always msg) (Process.sleep ms)
