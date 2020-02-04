@@ -175,6 +175,9 @@ update msg model =
         ( GotSessionMsg Session.ChangeLanguage, _ ) ->
             updateSession (getSession model |> Session.changeLanguage) model |> withNoCmd
 
+        ( GotSessionMsg Session.ChangeMenu, _ ) ->
+            updateSession (getSession model |> Session.changeMenu) model |> withNoCmd
+
         ( _, _ ) ->
             model |> withNoCmd
 

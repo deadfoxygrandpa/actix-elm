@@ -13,11 +13,36 @@ body {
 	@apply bg-gray-100 font-sans;
 }
 
+.gradient {
+  background: linear-gradient(90deg, #ffffff 0%, #f2f2f2 100%);
+}
+
+.spin-right {
+		-webkit-animation: spin-forward .025s linear forwards;
+}
+
+.spin-left {
+		-webkit-animation: spin-backward .025s linear forwards;
+}
+
+@keyframes spin-forward {
+  from {
+    transform: rotate(0deg);
+  } to {
+    transform: rotate(45deg);
+  }
+}
+
+@keyframes spin-backward {
+  from {
+    transform: rotate(45deg);
+  } to {
+    transform: rotate(0deg);
+  }
+}
+
 @tailwind components;
 
 /* purgecss end ignore */
 @tailwind utilities;
 
-.gradient {
-  background: linear-gradient(90deg, #ffffff 0%, #f2f2f2 100%);
-}

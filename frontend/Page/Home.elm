@@ -32,13 +32,34 @@ view : Model -> Session -> { title : String, content : Html Msg }
 view model session =
     { title = "Home"
     , content =
-        Style.bodyAlert
-            (if loggedIn session then
-                viewLoggedIn (getUsernameUnsafe session)
+        Html.div
+            [ class "gradient px-3 pt-24 pb-24 mx-auto items-center"
+            , class "text-black font-bold"
+            ]
+            [ Html.div
+                [ class "container text-center md:text-left w-full flex flex-wrap flex-col md:flex-row items-center" ]
+                [ --left column
+                  Html.div
+                    [ class "w-full md:w-1/2 px-6" ]
+                    [ h2
+                        [ class "mb-4"
+                        , class "text-5xl tracking-tight"
+                        ]
+                        [ text "Learn to read Chinese" ]
+                    , h3
+                        [ class "text-3xl" ]
+                        [ text "Left" ]
+                    ]
 
-             else
-                viewLoggedOut
-            )
+                -- right column
+                , Html.div
+                    [ class "text-center w-full md:w-0 md:flex-grow px-6" ]
+                    [ h2
+                        [ class "text-3xl" ]
+                        [ text "Right" ]
+                    ]
+                ]
+            ]
     }
 
 
@@ -59,10 +80,3 @@ viewLoggedOut =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
-
-
-x : Html msg
-x =
-    div
-        [ class "whatever" ]
-        []
