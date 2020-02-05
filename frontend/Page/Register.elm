@@ -134,7 +134,7 @@ login form =
 view : Model -> { title : String, content : Html Msg }
 view model =
     { title = "Register"
-    , content = Html.div [] [ viewForm model.form |> Html.map GotFormMsg ]
+    , content = Html.div [ class "fade-in" ] [ viewForm model.form |> Html.map GotFormMsg ]
     }
 
 

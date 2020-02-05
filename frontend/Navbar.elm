@@ -38,7 +38,7 @@ view session =
         [ class "w-full md:flex items-baseline items-center justify-center flex-wrap bg-black p-6"
         , class <|
             if dropdown then
-                "flex-col"
+                "flex-col md:flex-row"
 
             else
                 "flex-row"
@@ -55,7 +55,7 @@ view session =
             [ class "md:block md:order-first w-40"
             , class <|
                 if dropdown then
-                    "block flex flex-col text-left"
+                    "block flex flex-col text-right w-full md:w-auto md:text-center"
 
                 else
                     "hidden"
@@ -71,7 +71,7 @@ view session =
             [ class "order-last md:block w-40"
             , class <|
                 if dropdown then
-                    "block flex flex-col text-left"
+                    "block flex flex-col text-right w-full md:w-auto md:text-center"
 
                 else
                     "hidden"

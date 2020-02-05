@@ -35,6 +35,7 @@ view model session =
         Html.div
             [ class "gradient px-3 pt-24 pb-24 mx-auto items-center"
             , class "text-black font-bold"
+            , class "fade-in"
             ]
             [ Html.div
                 [ class "container text-center md:text-left w-full flex flex-wrap flex-col md:flex-row items-center" ]

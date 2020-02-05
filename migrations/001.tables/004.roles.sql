@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS roles (
+	id SMALLINT PRIMARY KEY,
+	description TEXT
+);

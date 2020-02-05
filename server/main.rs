@@ -79,6 +79,13 @@ async fn logout(id: Identity) -> impl Responder {
     HttpResponse::Ok().finish()
 }
 
+async fn articles(db: web::Data<database::DB>) -> impl Responder {
+    match database::get_articles(db).await {
+        Ok(article_list) => web::Json(article_list),
+        Err(_) => web::Json(vec![])
+    }
+}
+
 async fn index(id: Identity) -> impl Responder {
     let name = id.identity();
     HttpResponse::Ok().body(html::elm_page(&name))
@@ -146,6 +153,7 @@ async fn main() -> std::io::Result<()> {
                 .route("/confirm/{token}", web::get().to(confirm))
                 .route("/is_admin", web::get().to(is_admin))
                 .route("/logout", web::post().to(logout))
+                .route("/articles", web::get().to(articles))
             )
             .service(web::scope("/fonts")
                 .route("/{name}", web::get().to(font))

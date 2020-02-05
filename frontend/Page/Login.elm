@@ -108,7 +108,7 @@ view model =
 viewForm : Api.LoginInfo -> Html FormMsg
 viewForm form =
     Html.div
-        [ class "w-full max-w-xs container" ]
+        [ class "w-full max-w-xs container fade-in" ]
         [ Html.form
             [ Html.Events.onSubmit SubmittedForm
             , class "bg-white shadow-md rounded px-8 pt-6 pb-8 m-4"

@@ -8,6 +8,7 @@ use actix_web::{web};
 use serde::{Serialize, Deserialize};
 use glob::glob;
 
+
 pub type DB = r2d2::Pool<PostgresConnectionManager<NoTls>>;
 pub type DBPool = r2d2::PooledConnection<PostgresConnectionManager<NoTls>>;
 
@@ -69,6 +70,8 @@ pub async fn select_hello(db: web::Data<DB>) -> Result<String, actix_web::error:
     .await
     .map(|x| x)
 }
+
+// USER MANAGEMENT
 
 pub async fn authenticate(db: web::Data<DB>, info: Login) -> Result<String, actix_web::error::BlockingError<DBError>> {
     web::block(move || {
@@ -134,7 +137,51 @@ pub async fn check_admin(db: web::Data<DB>, username: String) -> Result<bool, ac
     .map(|x| x)
 }
 
+
+// ARTICLE MANAGEMENT
+
+#[derive(Serialize, PartialEq, Clone)]
+pub struct Article {
+    pub id: i32,
+    pub headline_cn: String,
+    pub date_created: std::time::SystemTime,
+    pub article_body: String,
+    pub summary: String,
+    pub author: String,
+    pub image: Option<String>,
+}
+
+pub async fn get_articles(db: web::Data<DB>) -> Result<Vec<Article>, actix_web::error::BlockingError<DBError>> {
+    web::block(move || {
+        let x: Result<Vec<Article>, DBError> = db.get()
+            .map_err(|e| DBError::PoolError(e))
+            .and_then(|c| get(c, "SELECT articles.id, headlineCN, dateCreated, articleBody, abstract, users.username, image FROM articles JOIN users ON articles.author = users.id;", &[]))
+            .and_then(|rows| 
+                Ok(rows
+                .iter()
+                .map(|row| Article 
+                            { id: row.get(0)
+                            , headline_cn: row.get(1)
+                            , date_created: row.get(2)
+                            , article_body: row.get(3)
+                            , summary: row.get(4)
+                            , author: row.get(5)
+                            , image: row.get(6)
+                            }
+                    )
+                .collect())
+            );
+        x
+    })
+    .await
+    .map(|x| x)
+}
+
 // HELPERS
+
+fn get(mut c: DBPool, query: &str, params: &[&(dyn postgres::types::ToSql + Sync)]) -> Result<Vec<postgres::row::Row>, DBError> {
+    c.query(query, params).map_err(|e| DBError::TokioPostgresError(e))
+}
 
 fn get_row(mut c: DBPool, query: &str, params: &[&(dyn postgres::types::ToSql + Sync)]) -> Result<postgres::row::Row, DBError> {
     c.query_one(query, params).map_err(|e| DBError::TokioPostgresError(e))

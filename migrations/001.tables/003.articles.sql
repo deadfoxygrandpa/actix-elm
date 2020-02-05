@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS articles (
+	id SERIAL PRIMARY KEY,
+	dateline TEXT,
+	headlineCN TEXT NOT NULL,
+	headlineEN TEXT,
+	dateCreated TIMESTAMP NOT NULL,
+	dateReviewed TIMESTAMP,
+	datePublished TIMESTAMP,
+	dateModified TIMESTAMP,
+	disabled BOOLEAN NOT NULL,
+	articleBody TEXT NOT NULL,
+	wordCount SMALLINT NOT NULL,
+	abstract TEXT NOT NULL,
+	author INTEGER NOT NULL REFERENCES users(id),
+	reviewer INTEGER REFERENCES users(id),
+	publisher INTEGER REFERENCES users(id),
+	modifier INTEGER REFERENCES users(id),
+	contentLocation TEXT,
+	isBasedOn TEXT,
+	image TEXT
+);
