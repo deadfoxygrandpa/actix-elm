@@ -2,7 +2,9 @@ module Article exposing (Article, ArticleSummary, articleDecoder, articleSummary
 
 import Html exposing (..)
 import Html.Attributes exposing (class)
+import Html.Events exposing (onClick)
 import Json.Decode exposing (Decoder, field, int, nullable, string)
+import Route
 import Style
 import Time
 
@@ -58,12 +60,14 @@ articleSummaryDecoder =
         (field "image" (nullable string))
 
 
-articleSummaryCard : ArticleSummary -> Html msg
-articleSummaryCard articleSummary =
+articleSummaryCard : (Route.Route -> msg) -> ArticleSummary -> Html msg
+articleSummaryCard toMsg articleSummary =
     div
-        [ class "w-full md:h-48 h-md block md:flex md:flex-row" ]
+        [ class "group hover:bg-gray-100 w-full md:h-48 h-md block md:flex md:flex-row"
+        , onClick <| toMsg (Route.Article articleSummary.articleID)
+        ]
         [ div
-            [ class "float-none h-48 md:h-auto bg-cover bg-center overflow-hidden md:w-48 flex-shrink-0"
+            [ class "float-none h-48 md:h-auto bg-cover bg-center overflow-hidden md:w-48 flex-shrink-0 m-2"
             , Style.backgroundImage <| Maybe.withDefault "/image/placeholder.jpg" articleSummary.image
             ]
             []

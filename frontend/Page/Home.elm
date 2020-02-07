@@ -1,4 +1,4 @@
-module Page.Home exposing (Model(..), Msg(..), init, subscriptions, update, view)
+module Page.Home exposing (Model, Msg(..), init, subscriptions, update, view)
 
 import Api
 import Article
@@ -8,32 +8,46 @@ import Html exposing (..)
 import Html.Attributes exposing (class)
 import Http
 import RemoteData
+import Route
 import Session exposing (..)
 import Style
 
 
-type Model
-    = Articles (RemoteData.WebData (List Article.ArticleSummary))
+type alias Model =
+    { articles : RemoteData.WebData (List Article.ArticleSummary)
+    , session : Session
+    }
 
 
 type Msg
     = GetArticleSummaries (RemoteData.WebData (List Article.ArticleSummary))
+    | Article Route.Route
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( Articles RemoteData.NotAsked, Api.articleSummaryList GetArticleSummaries )
+init : Session -> ( Model, Cmd Msg )
+init session =
+    ( { articles = RemoteData.NotAsked, session = session }, Api.articleSummaryList GetArticleSummaries )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GetArticleSummaries response ->
-            Articles response |> withNoCmd
+            { model | articles = response } |> withNoCmd
+
+        Article id ->
+            model |> withCmd (Route.pushUrl (Session.getKey model.session) id)
 
 
-view : Model -> Session -> { title : String, content : Html Msg }
-view (Articles response) session =
+view : Model -> { title : String, content : Html Msg }
+view model =
+    let
+        response =
+            model.articles
+
+        session =
+            model.session
+    in
     { title = "Home"
     , content =
         Html.div
@@ -79,7 +93,7 @@ view (Articles response) session =
                             (\article ->
                                 Html.div
                                     [ class "md:col-start-2 md:col-span-2 m-4 md:m-0" ]
-                                    [ Article.articleSummaryCard article ]
+                                    [ Article.articleSummaryCard Article article ]
                             )
                             articles
 

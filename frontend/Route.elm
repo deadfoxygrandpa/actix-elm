@@ -1,4 +1,4 @@
-module Route exposing (Route(..), fromUrl, href, load, replaceToHome, replaceUrl)
+module Route exposing (Route(..), fromUrl, href, load, pushUrl, replaceToHome, replaceUrl)
 
 import Browser.Navigation exposing (Key)
 import Html exposing (Attribute)
@@ -6,43 +6,43 @@ import Html.Attributes
 import Process
 import Task
 import Url exposing (Url)
-import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, string)
+import Url.Parser as Parser exposing ((</>), Parser, int, oneOf, s, string)
 
 
 type Route
-    = Root
-    | Logout
+    = Logout
     | Home
     | Login
     | Register
+    | Article Int
     | Empty
 
 
 fromUrl : Url -> Maybe Route
 fromUrl url =
-    case url.path of
-        "/" ->
-            Just Home
+    Parser.parse parser url
 
-        "/logout" ->
-            Just Logout
 
-        "/index" ->
-            Just Home
-
-        "/login" ->
-            Just Login
-
-        "/register" ->
-            Just Register
-
-        _ ->
-            Nothing
+parser : Parser (Route -> a) a
+parser =
+    oneOf
+        [ Parser.map Home Parser.top
+        , Parser.map Logout (s "logout")
+        , Parser.map Home (s "index")
+        , Parser.map Login (s "login")
+        , Parser.map Register (s "register")
+        , Parser.map Article (s "article" </> int)
+        ]
 
 
 replaceUrl : Key -> Route -> Cmd msg
 replaceUrl key route =
     Browser.Navigation.replaceUrl key (routeToString route)
+
+
+pushUrl : Key -> Route -> Cmd msg
+pushUrl key route =
+    Browser.Navigation.pushUrl key (routeToString route)
 
 
 replaceToHome : Key -> Cmd msg
@@ -53,9 +53,6 @@ replaceToHome key =
 routeToString : Route -> String
 routeToString route =
     case route of
-        Root ->
-            "/"
-
         Logout ->
             "/logout"
 
@@ -67,6 +64,9 @@ routeToString route =
 
         Register ->
             "/register"
+
+        Article id ->
+            "/article/" ++ String.fromInt id
 
         Empty ->
             ""

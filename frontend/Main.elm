@@ -44,7 +44,7 @@ main =
 type Model
     = Redirect Session.Session
     | NotFound Session.Session
-    | Home Session.Session Page.Home.Model
+    | Home Page.Home.Model
     | Login Page.Login.Model
     | Logout Page.Logout.Model
     | Register Page.Register.Model
@@ -78,8 +78,8 @@ getSession model =
         NotFound session ->
             session
 
-        Home session _ ->
-            session
+        Home subModel ->
+            subModel.session
 
         Login subModel ->
             subModel.session
@@ -100,8 +100,8 @@ updateSession session model =
         NotFound _ ->
             NotFound session
 
-        Home _ subModel ->
-            Home session subModel
+        Home subModel ->
+            Home { subModel | session = session }
 
         Login subModel ->
             Login { subModel | session = session }
@@ -123,20 +123,20 @@ changeRouteTo maybeRoute model =
         Nothing ->
             NotFound session |> withNoCmd
 
-        Just Route.Root ->
-            model |> withCmd (Route.replaceUrl (Session.getKey session) Route.Home)
-
         Just Route.Logout ->
             Page.Logout.init session |> updateWith GotLogoutMsg Logout
 
         Just Route.Home ->
-            Page.Home.init |> updateWith GotHomeMsg (Home session)
+            Page.Home.init session |> updateWith GotHomeMsg Home
 
         Just Route.Login ->
             Page.Login.init session |> updateWith GotLoginMsg Login
 
         Just Route.Register ->
             Page.Register.init session |> updateWith GotRegisterMsg Register
+
+        Just (Route.Article id) ->
+            NotFound session |> withNoCmd
 
         Just Route.Empty ->
             model |> withNoCmd
@@ -156,9 +156,9 @@ update msg model =
                 Browser.External url ->
                     model |> withCmd (Browser.Navigation.load url)
 
-        ( GotHomeMsg subMsg, Home session subModel ) ->
+        ( GotHomeMsg subMsg, Home subModel ) ->
             Page.Home.update subMsg subModel
-                |> updateWith GotHomeMsg (Home session)
+                |> updateWith GotHomeMsg Home
 
         ( GotLoginMsg subMsg, Login subModel ) ->
             Page.Login.update subMsg subModel
@@ -200,7 +200,7 @@ subscriptions model =
         Redirect _ ->
             Sub.none
 
-        Home _ subModel ->
+        Home subModel ->
             Sub.map GotHomeMsg (Page.Home.subscriptions subModel)
 
         Login subModel ->
@@ -249,8 +249,8 @@ view model =
         NotFound session ->
             Page.view session Page.Other Page.NotFound.view |> addNavbar
 
-        Home session subModel ->
-            viewPage Page.Home GotHomeMsg (Page.Home.view subModel session)
+        Home subModel ->
+            viewPage Page.Home GotHomeMsg (Page.Home.view subModel)
 
         Login subModel ->
             viewPage Page.Login GotLoginMsg (Page.Login.view subModel)

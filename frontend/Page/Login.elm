@@ -44,7 +44,7 @@ init session =
     , session = session
     }
         |> (if Session.loggedIn session then
-                withCmd (Route.replaceUrl (Session.getKey session) Route.Home)
+                withCmd (Session.getKey session |> Route.replaceToHome)
 
             else
                 withNoCmd
