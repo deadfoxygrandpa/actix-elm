@@ -72,9 +72,9 @@ articleSummaryCard toMsg articleSummary =
             ]
             []
         , div
-            [ class "md:flex md:flex-col md:justify-between md:flex-grow md:px-4 overflow-auto" ]
+            [ class "md:flex md:flex-col md:justify-between md:flex-grow md:px-4" ]
             [ h3 [ class "font-bold text-3xl" ] [ text articleSummary.headlineCN ]
-            , h1 [ class "font-light text-lg" ] [ text articleSummary.summary ]
+            , h1 [ class "font-light text-lg overflow-auto" ] [ text articleSummary.summary ]
             , div
                 []
                 [ span [ class "text-sm mr-4" ] [ text articleSummary.author ]
