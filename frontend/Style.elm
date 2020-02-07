@@ -1,4 +1,4 @@
-module Style exposing (bodyAlert, formButton, formInputField, link, linkAlert, loadingIcon)
+module Style exposing (backgroundImage, bodyAlert, formButton, formInputField, link, linkAlert, loadingIcon)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -107,3 +107,8 @@ bodyAlert content =
 loadingIcon : Html msg
 loadingIcon =
     Html.div [ class "loading flex-shrink" ] []
+
+
+backgroundImage : String -> Attribute msg
+backgroundImage filename =
+    Html.Attributes.style "background-image" ("url('" ++ filename ++ "')")

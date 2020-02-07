@@ -3,6 +3,7 @@ module Article exposing (Article, ArticleSummary, articleDecoder, articleSummary
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import Json.Decode exposing (Decoder, field, int, nullable, string)
+import Style
 import Time
 
 
@@ -63,7 +64,7 @@ articleSummaryCard articleSummary =
         [ class "w-full md:h-48 h-md block md:flex md:flex-row" ]
         [ div
             [ class "float-none h-48 md:h-auto bg-cover bg-center overflow-hidden md:w-48 flex-shrink-0"
-            , Html.Attributes.style "background-image" "url('/image/placeholder.jpg')"
+            , Style.backgroundImage <| Maybe.withDefault "/image/placeholder.jpg" articleSummary.image
             ]
             []
         , div
