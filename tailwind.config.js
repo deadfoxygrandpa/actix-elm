@@ -2,7 +2,8 @@ module.exports = {
   theme: {
     extend: {},
     fontFamily: { 
-    	'sans': ['Noto Sans SC', 'Noto Sans', 'apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji']
+    	'sans': ['Noto Sans SC', 'Noto Sans', 'sans-serif'],
+      'serif': ['Noto Serif SC', 'Noto Serif', 'serif']
     },
     container: {
     	center: true,

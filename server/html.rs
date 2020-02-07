@@ -16,6 +16,7 @@ where T: Serialize
 <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
 <title>App</title>\
 <link href=\"https://fonts.googleapis.com/css?family=Noto+Sans+SC:100,400,900&display=swap&subset=chinese-simplified\"rel=\"stylesheet\">\
+<link href=\"https://fonts.googleapis.com/css?family=Noto+Serif+SC:100,400,900&display=swap&subset=chinese-simplified\"rel=\"stylesheet\">\
 <link href=\"/style.css\" rel=\"stylesheet\">\
 <script src=\"/elm.js\"></script>\
 </head>\
