@@ -71,14 +71,8 @@ view (Articles response) session =
                 [ class "w-full md:grid md:grid-cols-4 md:gap-4" ]
               <|
                 case response of
-                    RemoteData.NotAsked ->
-                        [ text "Initializing" ]
-
-                    RemoteData.Loading ->
-                        [ text "Loading" ]
-
                     RemoteData.Failure _ ->
-                        [ text "Failed" ]
+                        [ Html.div [ class "md:col-start-2 md:col-span-2 m4 md:m-0 flex flex-row justify-center text-center" ] [ text "Failed" ] ]
 
                     RemoteData.Success articles ->
                         List.map
@@ -88,6 +82,9 @@ view (Articles response) session =
                                     [ Article.articleSummaryCard article ]
                             )
                             articles
+
+                    _ ->
+                        [ Html.div [ class "md:col-start-2 md:col-span-2 m4 md:m-0 flex flex-row justify-center" ] [ Style.loadingIcon ] ]
             ]
     }
 

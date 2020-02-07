@@ -117,6 +117,14 @@ async fn font(info: web::Path<String>) -> Result<fs::NamedFile> {
     Ok(fs::NamedFile::open(format!("static/fonts/{}", name))?)
 }
 
+async fn image(info: web::Path<String>) -> Result<fs::NamedFile> {
+    let name = info.into_inner();
+    match fs::NamedFile::open(format!("static/images/{}", name)) {
+        Ok(img) => Ok(img),
+        Err(_) => Ok(fs::NamedFile::open("static/images/placeholder.jpg")?) 
+    }
+}
+
 
 // PROGRAM LOGIC
 
@@ -171,6 +179,7 @@ async fn main() -> std::io::Result<()> {
                 .route("/favicon.ico", web::get().to(favicon))
                 .route("/elm.js", web::get().to(elm))
                 .route("/style.css", web::get().to(style))
+                .route("/image/{filename}", web::get().to(image))
             )
             .default_service(
                 web::route().to(index))

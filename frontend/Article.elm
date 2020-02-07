@@ -62,7 +62,9 @@ articleSummaryCard articleSummary =
     div
         [ class "w-full md:h-48 h-md block md:flex md:flex-row" ]
         [ div
-            [ class "float-none shadow-md bg-white h-48 md:h-auto bg-cover md:w-48 flex-shrink-0" ]
+            [ class "float-none h-48 md:h-auto bg-cover bg-center overflow-hidden md:w-48 flex-shrink-0"
+            , Html.Attributes.style "background-image" "url('/image/placeholder.jpg')"
+            ]
             []
         , div
             [ class "md:flex md:flex-col md:justify-between md:flex-grow md:px-4 overflow-auto" ]

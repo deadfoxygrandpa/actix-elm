@@ -1,7 +1,8 @@
-module Style exposing (bodyAlert, formButton, formInputField, link, linkAlert)
+module Style exposing (bodyAlert, formButton, formInputField, link, linkAlert, loadingIcon)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Ionicon
 import Localization
 import Route
 import String
@@ -101,3 +102,8 @@ bodyAlert content =
     Html.div
         [ class "container max-w-sm text-center bg-white shadow-md rounded my-4 p-6" ]
         [ content ]
+
+
+loadingIcon : Html msg
+loadingIcon =
+    Html.div [ class "loading flex-shrink" ] []
