@@ -49,7 +49,7 @@ formInputField label error attributes =
         [ class "mb-4" ]
         [ Html.label
             [ class "block mb-2"
-            , class "text-gray-700 text-sm font-bold font-sans"
+            , class "text-gray-700 text-sm font-bold"
             ]
             [ text label ]
         , Html.input
