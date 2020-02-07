@@ -21,6 +21,6 @@
   },
   "homepage": "https://github.com/deadfoxygrandpa/actix-elm#readme",
   "dependencies": {
-    "tailwindcss": "^1.1.4"
+    "tailwindcss": "^1.2.0"
   }
 }

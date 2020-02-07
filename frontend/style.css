@@ -1,7 +1,6 @@
 /* purgecss start ignore */
 @tailwind base;
 
-
 html {
   box-sizing: border-box; 
 }

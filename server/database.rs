@@ -151,26 +151,72 @@ pub struct Article {
     pub image: Option<String>,
 }
 
-pub async fn get_articles(db: web::Data<DB>) -> Result<Vec<Article>, actix_web::error::BlockingError<DBError>> {
+#[derive(Serialize, PartialEq, Clone)]
+pub struct ArticleSummary {
+    pub id: i32,
+    pub headline_cn: String,
+    pub date_created: std::time::SystemTime,
+    pub summary: String,
+    pub author: String,
+    pub image: Option<String>,
+}
+
+pub fn summarize(article: Article) -> ArticleSummary {
+    ArticleSummary {
+        id: article.id,
+        headline_cn: article.headline_cn,
+        date_created: article.date_created,
+        summary: article.summary,
+        author: article.author,
+        image: article.image,
+    }
+}
+
+pub async fn get_articles(db: web::Data<DB>) -> Result<Vec<ArticleSummary>, actix_web::error::BlockingError<DBError>> {
     web::block(move || {
-        let x: Result<Vec<Article>, DBError> = db.get()
+        let x: Result<Vec<ArticleSummary>, DBError> = db.get()
             .map_err(|e| DBError::PoolError(e))
-            .and_then(|c| get(c, "SELECT articles.id, headlineCN, dateCreated, articleBody, abstract, users.username, image FROM articles JOIN users ON articles.author = users.id;", &[]))
+            .and_then(|c| get(c, "SELECT articles.id, headlineCN, dateCreated, articleBody, abstract, users.username, image, users.display_name FROM articles JOIN users ON articles.author = users.id;", &[]))
             .and_then(|rows| 
                 Ok(rows
                 .iter()
-                .map(|row| Article 
-                            { id: row.get(0)
-                            , headline_cn: row.get(1)
-                            , date_created: row.get(2)
-                            , article_body: row.get(3)
-                            , summary: row.get(4)
-                            , author: row.get(5)
-                            , image: row.get(6)
-                            }
-                    )
+                .map(|row| {
+                    let display_name: Option<String> = row.get(7);
+                    ArticleSummary 
+                        { id: row.get(0)
+                        , headline_cn: row.get(1)
+                        , date_created: row.get(2)
+                        , summary: row.get(4)
+                        , author: display_name.unwrap_or_else(|| row.get(5))
+                        , image: row.get(6)
+                        }
+                    })
                 .collect())
             );
+        x
+    })
+    .await
+    .map(|x| x)
+}
+
+pub async fn get_article(db: web::Data<DB>, id: i32) -> Result<Article, actix_web::error::BlockingError<DBError>> {
+    web::block(move || {
+        let x: Result<Article, DBError> = db.get()
+            .map_err(|e| DBError::PoolError(e))
+            .and_then(|c| get_row(c, "SELECT articles.id, headlineCN, dateCreated, articleBody, abstract, users.username, image, users.display_name FROM articles JOIN users ON articles.author = users.id WHERE articles.id = $1;", &[&id]))
+            .and_then(|row| {
+                let display_name: Option<String> = row.get(7);
+                Ok(Article
+                    { id: row.get(0)
+                    , headline_cn: row.get(1)
+                    , date_created: row.get(2)
+                    , article_body: row.get(3)
+                    , summary: row.get(4)
+                    , author: display_name.unwrap_or_else(|| row.get(5))
+                    , image: row.get(6)
+                    })
+                }
+                );
         x
     })
     .await

@@ -1,9 +1,26 @@
-module Api exposing (LoginInfo, attemptLogin, attemptLogout, confirm, delay, get, hello, initLoginInfo, login, logout, msgDecoder, post, register)
+module Api exposing
+    ( LoginInfo
+    , articleSummaryList
+    , attemptLogin
+    , attemptLogout
+    , confirm
+    , delay
+    , get
+    , hello
+    , initLoginInfo
+    , login
+    , logout
+    , msgDecoder
+    , post
+    , register
+    )
 
+import Article
 import Http
-import Json.Decode exposing (Decoder, field, string)
+import Json.Decode exposing (Decoder, field, list, string)
 import Json.Encode
 import Process
+import RemoteData exposing (WebData)
 import Task
 import Url.Builder
 
@@ -85,6 +102,14 @@ attemptLogout toMsg =
         }
 
 
+articleSummaryList : (WebData (List Article.ArticleSummary) -> msg) -> Cmd msg
+articleSummaryList toMsg =
+    get
+        { endpoint = articles
+        , expect = Http.expectJson (RemoteData.fromResult >> toMsg) (list Article.articleSummaryDecoder)
+        }
+
+
 unwrap : Endpoint -> String
 unwrap (Endpoint s) =
     s
@@ -113,6 +138,11 @@ logout =
 register : Endpoint
 register =
     url [ "register" ]
+
+
+articles : Endpoint
+articles =
+    url [ "articles" ]
 
 
 confirm : String -> String

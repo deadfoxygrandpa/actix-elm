@@ -86,6 +86,13 @@ async fn articles(db: web::Data<database::DB>) -> impl Responder {
     }
 }
 
+async fn article(db: web::Data<database::DB>, id: web::Path<i32>) -> impl Responder {
+    match database::get_article(db, id.into_inner()).await {
+        Ok(article) => web::Json(Some(article)),
+        Err(e) => web::Json(None)
+    }
+}
+
 async fn index(id: Identity) -> impl Responder {
     let name = id.identity();
     HttpResponse::Ok().body(html::elm_page(&name))
@@ -154,6 +161,7 @@ async fn main() -> std::io::Result<()> {
                 .route("/is_admin", web::get().to(is_admin))
                 .route("/logout", web::post().to(logout))
                 .route("/articles", web::get().to(articles))
+                .route("/article/{id}", web::get().to(article))
             )
             .service(web::scope("/fonts")
                 .route("/{name}", web::get().to(font))
