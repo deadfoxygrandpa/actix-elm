@@ -1,4 +1,14 @@
-module Style exposing (backgroundImage, bodyAlert, formButton, formInputField, link, linkAlert, loadingIcon)
+module Style exposing
+    ( backgroundImage
+    , bodyAlert
+    , divider
+    , formButton
+    , formInputField
+    , link
+    , linkAlert
+    , loadingIcon
+    , maybeBackgroundImage
+    )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -112,3 +122,13 @@ loadingIcon =
 backgroundImage : String -> Attribute msg
 backgroundImage filename =
     Html.Attributes.style "background-image" ("url('" ++ filename ++ "')")
+
+
+maybeBackgroundImage : Maybe String -> Attribute msg
+maybeBackgroundImage filename =
+    Maybe.withDefault "/image/placeholder.jpg" filename |> backgroundImage
+
+
+divider : Html msg
+divider =
+    Html.div [ class "w-full h-px divider my-4" ] []

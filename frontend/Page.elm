@@ -8,6 +8,7 @@ import List
 import Localization
 import Route
 import Session
+import Style
 
 
 type Page
@@ -16,6 +17,7 @@ type Page
     | Login
     | Register
     | Logout
+    | Article
 
 
 view : Session.Session -> Page -> { title : String, content : Html msg } -> Document msg
@@ -27,4 +29,4 @@ view session page { title, content } =
 
 viewFooter : Html msg
 viewFooter =
-    div [ class "container text-center" ] [ text "_____________" ]
+    Style.divider

@@ -52,35 +52,7 @@ view model =
     , content =
         Html.div
             []
-            [ Html.div
-                [ class "gradient px-3 pt-24 pb-24 mx-auto items-center"
-                , class "text-black font-bold"
-                , class "fade-in"
-                ]
-                [ Html.div
-                    [ class "container text-center md:text-left w-full flex flex-wrap flex-col md:flex-row items-center" ]
-                    [ --left column
-                      Html.div
-                        [ class "w-full md:w-1/2 px-6" ]
-                        [ h2
-                            [ class "mb-4"
-                            , class "text-5xl tracking-tight"
-                            ]
-                            [ text "Learn to read Chinese" ]
-                        , h3
-                            [ class "text-3xl" ]
-                            [ text "Left" ]
-                        ]
-
-                    -- right column
-                    , Html.div
-                        [ class "text-center w-full md:w-0 md:flex-grow px-6" ]
-                        [ h2
-                            [ class "text-3xl" ]
-                            [ text "Right" ]
-                        ]
-                    ]
-                ]
+            [ splash
             , Html.div
                 [ class "w-full md:grid md:grid-cols-4 md:gap-4" ]
               <|
@@ -101,6 +73,39 @@ view model =
                         [ Html.div [ class "md:col-start-2 md:col-span-2 m4 md:m-0 flex flex-row justify-center" ] [ Style.loadingIcon ] ]
             ]
     }
+
+
+splash : Html msg
+splash =
+    Html.div
+        [ class "gradient px-3 pt-24 pb-24 mx-auto items-center"
+        , class "text-black font-bold"
+        , class "fade-in"
+        ]
+        [ Html.div
+            [ class "container text-center md:text-left w-full flex flex-wrap flex-col md:flex-row items-center" ]
+            [ --left column
+              Html.div
+                [ class "w-full md:w-1/2 px-6" ]
+                [ h2
+                    [ class "mb-4"
+                    , class "text-5xl tracking-tight"
+                    ]
+                    [ text "Learn to read Chinese" ]
+                , h3
+                    [ class "text-3xl" ]
+                    [ text "Left" ]
+                ]
+
+            -- right column
+            , Html.div
+                [ class "text-center w-full md:w-0 md:flex-grow px-6" ]
+                [ h2
+                    [ class "text-3xl" ]
+                    [ text "Right" ]
+                ]
+            ]
+        ]
 
 
 viewLoggedIn : String -> Html msg

@@ -11,6 +11,7 @@ import Json.Decode exposing (Decoder, field, string)
 import Localization
 import Navbar
 import Page
+import Page.Article
 import Page.Blank
 import Page.Home
 import Page.Login
@@ -48,6 +49,7 @@ type Model
     | Login Page.Login.Model
     | Logout Page.Logout.Model
     | Register Page.Register.Model
+    | Article Page.Article.Model
 
 
 init : Maybe String -> Url -> Key -> ( Model, Cmd Msg )
@@ -67,6 +69,7 @@ type Msg
     | GotRegisterMsg Page.Register.Msg
     | GotSessionMsg Session.Msg
     | GotLogoutMsg Page.Logout.Msg
+    | GotArticleMsg Page.Article.Msg
 
 
 getSession : Model -> Session.Session
@@ -90,6 +93,9 @@ getSession model =
         Register subModel ->
             subModel.session
 
+        Article subModel ->
+            subModel.session
+
 
 updateSession : Session.Session -> Model -> Model
 updateSession session model =
@@ -111,6 +117,9 @@ updateSession session model =
 
         Register subModel ->
             Register { subModel | session = session }
+
+        Article subModel ->
+            Article { subModel | session = session }
 
 
 changeRouteTo : Maybe Route.Route -> Model -> ( Model, Cmd Msg )
@@ -136,7 +145,7 @@ changeRouteTo maybeRoute model =
             Page.Register.init session |> updateWith GotRegisterMsg Register
 
         Just (Route.Article id) ->
-            NotFound session |> withNoCmd
+            Page.Article.init session id |> updateWith GotArticleMsg Article
 
         Just Route.Empty ->
             model |> withNoCmd
@@ -171,6 +180,10 @@ update msg model =
         ( GotRegisterMsg subMsg, Register subModel ) ->
             Page.Register.update subMsg subModel
                 |> updateWith GotRegisterMsg Register
+
+        ( GotArticleMsg subMsg, Article subModel ) ->
+            Page.Article.update subMsg subModel
+                |> updateWith GotArticleMsg Article
 
         ( GotSessionMsg Session.ChangeLanguage, _ ) ->
             updateSession (getSession model |> Session.changeLanguage) model |> withNoCmd
@@ -211,6 +224,9 @@ subscriptions model =
 
         Register subModel ->
             Sub.map GotRegisterMsg (Page.Register.subscriptions subModel)
+
+        Article subModel ->
+            Sub.map GotArticleMsg (Page.Article.subscriptions subModel)
 
 
 
@@ -260,3 +276,6 @@ view model =
 
         Register subModel ->
             viewPage Page.Register GotRegisterMsg (Page.Register.view subModel)
+
+        Article subModel ->
+            viewPage Page.Article GotArticleMsg (Page.Article.view subModel)

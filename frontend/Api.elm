@@ -1,11 +1,13 @@
 module Api exposing
     ( LoginInfo
+    , article
     , articleSummaryList
     , attemptLogin
     , attemptLogout
     , confirm
     , delay
     , get
+    , getArticle
     , hello
     , initLoginInfo
     , login
@@ -110,6 +112,14 @@ articleSummaryList toMsg =
         }
 
 
+getArticle : (WebData Article.Article -> msg) -> Int -> Cmd msg
+getArticle toMsg id =
+    get
+        { endpoint = article id
+        , expect = Http.expectJson (RemoteData.fromResult >> toMsg) Article.articleDecoder
+        }
+
+
 unwrap : Endpoint -> String
 unwrap (Endpoint s) =
     s
@@ -117,7 +127,7 @@ unwrap (Endpoint s) =
 
 url : List String -> Endpoint
 url paths =
-    Url.Builder.relative ("api" :: paths) [] |> Endpoint
+    Url.Builder.absolute ("api" :: paths) [] |> Endpoint
 
 
 hello : Endpoint
@@ -145,9 +155,14 @@ articles =
     url [ "articles" ]
 
 
+article : Int -> Endpoint
+article id =
+    url [ "article", String.fromInt id ]
+
+
 confirm : String -> String
 confirm invitation =
-    Url.Builder.relative [ "api", "confirm", invitation ] []
+    Url.Builder.absolute [ "api", "confirm", invitation ] []
 
 
 delay : Float -> msg -> Cmd msg

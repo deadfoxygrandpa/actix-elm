@@ -1,4 +1,4 @@
-module Article exposing (Article, ArticleSummary, articleDecoder, articleSummaryCard, articleSummaryDecoder, time)
+module Article exposing (Article, ArticleSummary, articleDecoder, articleSummaryCard, articleSummaryDecoder, time, timeToDate)
 
 import Html exposing (..)
 import Html.Attributes exposing (class)
@@ -68,7 +68,7 @@ articleSummaryCard toMsg articleSummary =
         ]
         [ div
             [ class "float-none h-48 md:h-auto bg-cover bg-center overflow-hidden md:w-48 flex-shrink-0 m-2"
-            , Style.backgroundImage <| Maybe.withDefault "/image/placeholder.jpg" articleSummary.image
+            , Style.maybeBackgroundImage articleSummary.image
             ]
             []
         , div
