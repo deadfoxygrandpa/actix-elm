@@ -34,6 +34,21 @@ pub struct Register {
     pub confirm: String,
 }
 
+#[derive(Serialize, Deserialize, PartialEq, Clone)]
+pub struct Credentials {
+    pub username: String,
+    pub roles: Vec<i32>,
+}
+
+//  roles spec
+#[derive(Copy, Clone)]
+enum Role {
+    Admin = 1,
+    Author = 2,
+    Reviewer = 3,
+    Publisher = 4,
+}
+
 
 impl fmt::Display for DBError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -73,17 +88,17 @@ pub async fn select_hello(db: web::Data<DB>) -> Result<String, actix_web::error:
 
 // USER MANAGEMENT
 
-pub async fn authenticate(db: web::Data<DB>, info: Login) -> Result<String, actix_web::error::BlockingError<DBError>> {
+pub async fn authenticate(db: web::Data<DB>, info: Login) -> Result<(Credentials, String), actix_web::error::BlockingError<DBError>> {
     web::block(move || {
-        let x: Result<String, DBError> = db.get()
+        let x: Result<(Credentials, String), DBError> = db.get()
             .map_err(|e| DBError::PoolError(e))
-            .and_then(|c| get_row(c, "SELECT success, message FROM authenticate($1, $2);", &[&info.username, &info.password]))
+            .and_then(|c| get_row(c, "SELECT success, message, roles FROM authenticate($1, $2);", &[&info.username, &info.password]))
             .and_then(|row| 
                 match row.get(0) {
-                    true => Ok(row.get(1)),
+                    true => Ok((Credentials { username: info.username.clone(), roles: row.get(2)}, row.get(1))),
                     false => Err(DBError::AuthenticationError(row.get(1)))
                 })
-            .and_then(|x: String| Ok(x.clone()));
+            .and_then(|x: (Credentials, String)| Ok(x.clone()));
         x
     })
     .await
@@ -120,18 +135,6 @@ pub async fn confirm(db: web::Data<DB>, info: String) -> Result<String, actix_we
                 })
             .and_then(|x: String| Ok(x.clone()));
         x
-    })
-    .await
-    .map(|x| x)
-}
-
-pub async fn check_admin(db: web::Data<DB>, username: String) -> Result<bool, actix_web::error::BlockingError<DBError>> {
-    web::block(move || {
-        let x: Result<bool, DBError> = db.get()
-            .map_err(|e| DBError::PoolError(e))
-            .and_then(|c| get_row(c, "SELECT check_admin($1);", &[&username]))
-            .and_then(|row| Ok(row.get(0)));
-        x    
     })
     .await
     .map(|x| x)

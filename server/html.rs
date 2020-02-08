@@ -6,7 +6,7 @@ const NULL: &str = "null";
 pub fn elm_page<T: ?Sized>(flags: &T) -> String 
 where T: Serialize
 {
-	let flags_ = serde_json::to_string(flags).unwrap_or(NULL.to_string());
+	let flags_ = serde_json::to_string(flags).unwrap_or_else(|_| NULL.to_string());
 
 	format!("\
 <!DOCTYPE html>\

@@ -2,6 +2,7 @@ use actix_web::{web, App, HttpServer, HttpResponse, Responder, Result};
 use actix_files as fs;
 use actix_identity::{Identity, CookieIdentityPolicy, IdentityService};
 use serde::{Serialize};
+use serde_json;
 use std::thread;
 
 #[macro_use]
@@ -15,14 +16,14 @@ mod html;
 // API
 
 #[derive(Serialize)]
-struct Lol {
+struct Msg {
     msg: String,
 }
 
 async fn hello(db: web::Data<database::DB>, id: Identity) -> impl Responder {
     match database::select_hello(db).await {
-        Ok(x) => web::Json(Lol { msg: format!("{}: {}", x, id.identity().unwrap_or_else(|| "idk".to_string())) }),
-        Err(e) => web::Json(Lol { msg: e.to_string() })
+        Ok(x) => web::Json(Msg { msg: format!("{}: {}", x, id.identity().unwrap_or_else(|| "idk".to_string())) }),
+        Err(e) => web::Json(Msg { msg: e.to_string() })
     }
 }
 
@@ -31,8 +32,12 @@ async fn login(info: web::Json<database::Login>, id: Identity, db: web::Data<dat
     let login_info = info.into_inner();
 
     match database::authenticate(db, login_info.clone()).await {
-        Ok(s) => { id.remember(login_info.username); web::Json(Lol { msg: s }) },
-        Err(e) => web::Json(Lol { msg: e.to_string() })
+        Ok((credentials, msg)) => { 
+            // explicitly unwrap to null string if json fails, because this will show up in Elm as not logged in
+            id.remember(serde_json::to_string(&credentials).unwrap_or_else(|_| "null".to_string())); 
+            web::Json(Msg { msg: msg }) 
+        },
+        Err(e) => web::Json(Msg { msg: e.to_string() })
     }
 }
 
@@ -49,28 +54,17 @@ async fn register(info: web::Json<database::Register>, db: web::Data<database::D
                         register_info.username,
                         s);
             match email::send_verification_email(mailer, mail).await {
-                Ok(_) => web::Json(Lol { msg: "Verification email sent!".to_string() }),
-                Err(e) => web::Json(Lol { msg: e })
+                Ok(_) => web::Json(Msg { msg: "Verification email sent!".to_string() }),
+                Err(e) => web::Json(Msg { msg: e })
             }},
-        Err(e) => web::Json(Lol { msg: e.to_string() })
+        Err(e) => web::Json(Msg { msg: e.to_string() })
     }
 }
 
 async fn confirm(info: web::Path<String>, db: web::Data<database::DB>) -> impl Responder {
     match database::confirm(db, info.into_inner()).await {
-        Ok(s) => web::Json(Lol { msg: s }),
-        Err(e) => web::Json(Lol { msg: e.to_string() })
-    }
-}
-
-async fn is_admin(db: web::Data<database::DB>, id: Identity) -> impl Responder {
-    match id.identity() {
-        Some(username) => 
-            match database::check_admin(db, username).await {
-                Ok(b) => web::Json(b),
-                Err(_) => web::Json(false)
-            },
-        None => web::Json(false)
+        Ok(s) => web::Json(Msg { msg: s }),
+        Err(e) => web::Json(Msg { msg: e.to_string() })
     }
 }
 
@@ -166,7 +160,6 @@ async fn main() -> std::io::Result<()> {
                 .route("/login", web::post().to(login))
                 .route("/register", web::post().to(register)) 
                 .route("/confirm/{token}", web::get().to(confirm))
-                .route("/is_admin", web::get().to(is_admin))
                 .route("/logout", web::post().to(logout))
                 .route("/articles", web::get().to(articles))
                 .route("/article/{id}", web::get().to(article))

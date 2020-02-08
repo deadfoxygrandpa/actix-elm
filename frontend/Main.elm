@@ -52,9 +52,13 @@ type Model
     | Article Page.Article.Model
 
 
-init : Maybe String -> Url -> Key -> ( Model, Cmd Msg )
-init username url key =
-    changeRouteTo (Route.fromUrl url) (Redirect <| Session.init key Localization.English username)
+type alias Flags =
+    Maybe String
+
+
+init : Flags -> Url -> Key -> ( Model, Cmd Msg )
+init credentials url key =
+    changeRouteTo (Route.fromUrl url) (Redirect <| Session.init key Localization.English credentials)
 
 
 

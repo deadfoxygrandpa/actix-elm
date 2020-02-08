@@ -1,22 +1,25 @@
+DROP FUNCTION IF EXISTS authenticate;
 CREATE OR REPLACE FUNCTION authenticate (
 	usr TEXT,
 	pass TEXT
 )
 RETURNS TABLE (
 	success BOOLEAN,
-	message TEXT
+	message TEXT,
+	roles INTEGER[]
 )
 AS
 $$
 DECLARE
 	success BOOLEAN;
 	message TEXT;
+	roles INTEGER[];
 	hashed_pw TEXT;
 	validated_pw TEXT;
 	active BOOLEAN;
 BEGIN
 	-- default to not approved
-	SELECT FALSE, '' INTO success, message;
+	SELECT FALSE, '', ARRAY[]::INTEGER[] INTO success, message, roles;
 	
 	-- if user doesn't exist
 	IF (SELECT NOT EXISTS(SELECT 1 FROM users WHERE username=usr)) THEN
@@ -37,9 +40,10 @@ BEGIN
 			-- everything is correct
 			ELSE 
 				SELECT TRUE, 'Success' INTO success, message;
+				SELECT array_agg(role) FROM user_roles JOIN users ON username=usr WHERE users.id = user_roles.id INTO roles;
 			END IF;
 		END IF;
 	END IF;
-	RETURN QUERY SELECT success, message;
+	RETURN QUERY SELECT success, message, roles;
 END;
 $$ LANGUAGE PLPGSQL;

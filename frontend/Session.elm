@@ -1,6 +1,22 @@
-module Session exposing (MenuStatus(..), Msg(..), Session(..), changeLanguage, changeMenu, getKey, getLanguage, getMenuStatus, getUsername, getUsernameUnsafe, init, loggedIn, logout)
+module Session exposing
+    ( Credentials
+    , MenuStatus(..)
+    , Msg(..)
+    , Session(..)
+    , changeLanguage
+    , changeMenu
+    , getKey
+    , getLanguage
+    , getMenuStatus
+    , getUsername
+    , getUsernameUnsafe
+    , init
+    , loggedIn
+    , logout
+    )
 
 import Browser.Navigation exposing (Key)
+import Json.Decode exposing (Decoder, field, int, list, string)
 import Localization exposing (Language)
 import Maybe
 
@@ -10,7 +26,21 @@ import Maybe
 
 
 type Session
-    = Session Key Language (Maybe String) MenuStatus
+    = Session Key Language (Maybe Credentials) MenuStatus
+
+
+type alias Credentials =
+    { username : String
+    , roles : List Role
+    }
+
+
+type Role
+    = Admin
+    | Author
+    | Reviewer
+    | Publisher
+    | None
 
 
 type MenuStatus
@@ -25,8 +55,47 @@ type Msg
 
 
 init : Key -> Language -> Maybe String -> Session
-init key lang username =
-    Session key lang username Init
+init key lang credentials =
+    Session key lang (makeCredentials credentials) Init
+
+
+makeCredentials : Maybe String -> Maybe Credentials
+makeCredentials credentials =
+    credentials
+        |> Maybe.andThen
+            (Json.Decode.decodeString credentialsDecoder
+                >> Result.toMaybe
+            )
+
+
+credentialsDecoder : Decoder Credentials
+credentialsDecoder =
+    Json.Decode.map2 Credentials
+        (field "username" string)
+        (field "roles" (list role))
+
+
+role : Decoder Role
+role =
+    let
+        intToRole n =
+            case n of
+                1 ->
+                    Admin
+
+                2 ->
+                    Author
+
+                3 ->
+                    Reviewer
+
+                4 ->
+                    Publisher
+
+                _ ->
+                    None
+    in
+    Json.Decode.map intToRole int
 
 
 getKey : Session -> Key
@@ -40,7 +109,7 @@ getLanguage (Session _ lang _ _) =
 
 
 changeLanguage : Session -> Session
-changeLanguage (Session key lang username open) =
+changeLanguage (Session key lang credentials open) =
     let
         newLang =
             case lang of
@@ -50,12 +119,12 @@ changeLanguage (Session key lang username open) =
                 Localization.Chinese ->
                     Localization.English
     in
-    Session key newLang username open
+    Session key newLang credentials open
 
 
 getUsername : Session -> Maybe String
-getUsername (Session _ _ username _) =
-    username
+getUsername (Session _ _ credentials _) =
+    Maybe.map .username credentials
 
 
 getUsernameUnsafe : Session -> String
@@ -65,7 +134,7 @@ getUsernameUnsafe session =
 
 logout : Session -> Session
 logout (Session key lang _ open) =
-    Session key lang Nothing open
+    Session key lang (makeCredentials Nothing) open
 
 
 loggedIn : Session -> Bool
@@ -84,7 +153,7 @@ getMenuStatus (Session _ _ _ open) =
 
 
 changeMenu : Session -> Session
-changeMenu (Session key lang username open) =
+changeMenu (Session key lang credentials open) =
     let
         menuStatus =
             case open of
@@ -97,4 +166,4 @@ changeMenu (Session key lang username open) =
                 Closed ->
                     Opened
     in
-    Session key lang username menuStatus
+    Session key lang credentials menuStatus
