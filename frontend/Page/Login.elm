@@ -66,7 +66,7 @@ updateForm : FormMsg -> Api.LoginInfo -> ( Api.LoginInfo, Cmd FormMsg )
 updateForm msg form =
     case msg of
         SubmittedForm ->
-            form |> withCmd (Api.attemptLogin form SentLogin)
+            { form | wrongPassword = False, pageMessage = Nothing, reply = Nothing } |> withCmd (Api.attemptLogin form SentLogin)
 
         EnteredUsername s ->
             { form | username = s } |> withNoCmd
@@ -77,7 +77,7 @@ updateForm msg form =
         SentLogin rs ->
             case rs of
                 Ok "Success" ->
-                    { form | wrongPassword = False, pageMessage = Just "Success." } |> withCmd (Api.delay 3000 LoggedIn)
+                    { form | wrongPassword = False, pageMessage = Just "Logged in." } |> withCmd (Api.delay 2000 LoggedIn)
 
                 Ok "AuthenticationError(\"Wrong password\")" ->
                     { form | reply = Just "Wrong password.", wrongPassword = True } |> withNoCmd
@@ -128,7 +128,7 @@ viewForm form =
                         "border-red-500"
 
                      else
-                        ""
+                        "border-transparent"
                     )
                 ]
             , Style.formButton "Sign in" []

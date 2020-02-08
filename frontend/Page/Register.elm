@@ -96,7 +96,7 @@ updateForm msg form =
         SubmittedForm ->
             case validateForm form of
                 [] ->
-                    form |> withCmd (login form)
+                    { form | reply = Nothing, usernameExists = False, validationErrors = [] } |> withCmd (login form)
 
                 errors ->
                     { form | validationErrors = errors } |> withNoCmd
