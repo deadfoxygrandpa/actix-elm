@@ -40,7 +40,7 @@ BEGIN
 			-- everything is correct
 			ELSE 
 				SELECT TRUE, 'Success' INTO success, message;
-				SELECT array_agg(role) FROM user_roles JOIN users ON username=usr WHERE users.id = user_roles.id INTO roles;
+				SELECT check_roles(usr) INTO roles;
 			END IF;
 		END IF;
 	END IF;
