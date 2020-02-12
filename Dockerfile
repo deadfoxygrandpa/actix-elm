@@ -113,5 +113,6 @@ RUN chown dokku-test:dokku-test dokku-test
 
 USER dokku-test
 
+LABEL maintainer="Alex Neslusan <deadfoxygrandpa@gmail.com>"
 
 CMD ["./dokku-test"]
