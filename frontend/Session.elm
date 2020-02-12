@@ -2,15 +2,18 @@ module Session exposing
     ( Credentials
     , MenuStatus(..)
     , Msg(..)
+    , Role(..)
     , Session(..)
     , changeLanguage
     , changeMenu
     , getKey
     , getLanguage
     , getMenuStatus
+    , getRoles
     , getUsername
     , getUsernameUnsafe
     , init
+    , isAdmin
     , loggedIn
     , logout
     )
@@ -22,7 +25,7 @@ import Maybe
 
 
 
--- session stores the nav key, current interface language, username, if the menu is open
+-- session stores the nav key, current interface language, username + roles, if the menu is open
 
 
 type Session
@@ -130,6 +133,16 @@ getUsername (Session _ _ credentials _) =
 getUsernameUnsafe : Session -> String
 getUsernameUnsafe session =
     getUsername session |> Maybe.withDefault ""
+
+
+getRoles : Session -> List Role
+getRoles (Session _ _ credentials _) =
+    Maybe.map .roles credentials |> Maybe.withDefault []
+
+
+isAdmin : Session -> Bool
+isAdmin =
+    List.member Admin << getRoles
 
 
 logout : Session -> Session

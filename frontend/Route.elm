@@ -15,7 +15,12 @@ type Route
     | Login
     | Register
     | Article Int
+    | WriteArticle UUID
     | Empty
+
+
+type alias UUID =
+    String
 
 
 fromUrl : Url -> Maybe Route
@@ -32,7 +37,13 @@ parser =
         , Parser.map Login (s "login")
         , Parser.map Register (s "register")
         , Parser.map Article (s "article" </> int)
+        , Parser.map WriteArticle (s "write_article" </> uuid)
         ]
+
+
+uuid : Parser (UUID -> a) a
+uuid =
+    string
 
 
 replaceUrl : Key -> Route -> Cmd msg
@@ -67,6 +78,9 @@ routeToString route =
 
         Article id ->
             "/article/" ++ String.fromInt id
+
+        WriteArticle uuid_ ->
+            "/write_article/" ++ uuid_
 
         Empty ->
             ""

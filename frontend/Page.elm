@@ -18,6 +18,7 @@ type Page
     | Register
     | Logout
     | Article
+    | WriteArticle
 
 
 view : Session.Session -> Page -> { title : String, content : Html msg } -> Document msg

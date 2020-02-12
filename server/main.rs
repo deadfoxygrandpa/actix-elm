@@ -12,6 +12,7 @@ extern crate lazy_static;
 mod database;
 mod email;
 mod html;
+mod identity;
 
 // API
 
@@ -83,7 +84,24 @@ async fn articles(db: web::Data<database::DB>) -> impl Responder {
 async fn article(db: web::Data<database::DB>, id: web::Path<i32>) -> impl Responder {
     match database::get_article(db, id.into_inner()).await {
         Ok(article) => web::Json(Some(article)),
-        Err(e) => web::Json(None)
+        Err(_) => web::Json(None)
+    }
+}
+
+// async fn write_article(db: web::Data<database::DB>, id: Identity) -> impl Responder {
+//     if identity::can_write_article(id) {
+//         let uuid = Uuid::new_v4().to_simple().to_string();
+//         Some(uuid)
+//     } else {
+//         None
+//     }
+// }
+
+async fn articles_in_progress(db: web::Data<database::DB>, id: Identity) -> impl Responder {
+    if identity::can_write_article(id) {
+        unimplemented!()
+    } else {
+        HttpResponse::Unauthorized().finish()
     }
 }
 

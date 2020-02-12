@@ -18,6 +18,7 @@ import Page.Login
 import Page.Logout
 import Page.NotFound
 import Page.Register
+import Page.WriteArticle
 import Route
 import Session
 import Url exposing (Url)
@@ -50,6 +51,7 @@ type Model
     | Logout Page.Logout.Model
     | Register Page.Register.Model
     | Article Page.Article.Model
+    | WriteArticle Page.WriteArticle.Model
 
 
 type alias Flags =
@@ -74,6 +76,7 @@ type Msg
     | GotSessionMsg Session.Msg
     | GotLogoutMsg Page.Logout.Msg
     | GotArticleMsg Page.Article.Msg
+    | GotWriteArticleMsg Page.WriteArticle.Msg
 
 
 getSession : Model -> Session.Session
@@ -98,6 +101,9 @@ getSession model =
             subModel.session
 
         Article subModel ->
+            subModel.session
+
+        WriteArticle subModel ->
             subModel.session
 
 
@@ -125,6 +131,9 @@ updateSession session model =
         Article subModel ->
             Article { subModel | session = session }
 
+        WriteArticle subModel ->
+            WriteArticle { subModel | session = session }
+
 
 changeRouteTo : Maybe Route.Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
@@ -150,6 +159,9 @@ changeRouteTo maybeRoute model =
 
         Just (Route.Article id) ->
             Page.Article.init session id |> updateWith GotArticleMsg Article
+
+        Just (Route.WriteArticle uuid) ->
+            Page.WriteArticle.init session uuid |> updateWith GotWriteArticleMsg WriteArticle
 
         Just Route.Empty ->
             model |> withNoCmd
@@ -188,6 +200,10 @@ update msg model =
         ( GotArticleMsg subMsg, Article subModel ) ->
             Page.Article.update subMsg subModel
                 |> updateWith GotArticleMsg Article
+
+        ( GotWriteArticleMsg subMsg, WriteArticle subModel ) ->
+            Page.WriteArticle.update subMsg subModel
+                |> updateWith GotWriteArticleMsg WriteArticle
 
         ( GotSessionMsg Session.ChangeLanguage, _ ) ->
             updateSession (getSession model |> Session.changeLanguage) model |> withNoCmd
@@ -231,6 +247,9 @@ subscriptions model =
 
         Article subModel ->
             Sub.map GotArticleMsg (Page.Article.subscriptions subModel)
+
+        WriteArticle subModel ->
+            Sub.map GotWriteArticleMsg (Page.WriteArticle.subscriptions subModel)
 
 
 
@@ -283,3 +302,6 @@ view model =
 
         Article subModel ->
             viewPage Page.Article GotArticleMsg (Page.Article.view subModel)
+
+        WriteArticle subModel ->
+            viewPage Page.WriteArticle GotWriteArticleMsg (Page.WriteArticle.view subModel)

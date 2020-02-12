@@ -68,7 +68,7 @@ view session =
                 [ text_ "currentLang" ]
             ]
         , div
-            [ class "order-last md:block w-40"
+            [ class "order-last md:flex md:flex-row w-40"
             , class <|
                 if dropdown then
                     "block flex flex-col text-right w-full md:w-auto md:text-center"
@@ -78,6 +78,8 @@ view session =
             ]
             [ a [ hiddenWhenLoggedIn session, class "hover:text-gray-300 md:mr-2", Route.href Route.Login ] [ text_ "login" ]
             , a [ hiddenWhenLoggedIn session, class "hover:text-gray-300 md:ml-2", Route.href Route.Register ] [ text_ "Register" ]
+            , div [ forAdmin session ]
+                [ a [ class "hover:text-gray-300 md:mr-2", Route.href (Route.WriteArticle "0") ] [ text "Create Article" ] ]
             , a [ hiddenWhenLoggedOut session, class "hover:text-gray-300", Route.href Route.Logout ] [ text "Logout" ]
             ]
         ]
@@ -127,6 +129,16 @@ hiddenWhenLoggedOut : Session.Session -> Html.Attribute msg
 hiddenWhenLoggedOut session =
     class <|
         if Session.loggedIn session then
+            ""
+
+        else
+            "hidden"
+
+
+forAdmin : Session.Session -> Html.Attribute msg
+forAdmin session =
+    class <|
+        if Session.isAdmin session then
             ""
 
         else

@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS temp_articles (
+	id UUID DEFAULT uuid_generate_v4 (),
+	dateline TEXT,
+	headlineCN TEXT,
+	headlineEN TEXT,
+	dateCreated TIMESTAMP,
+	dateReviewed TIMESTAMP,
+	datePublished TIMESTAMP,
+	dateModified TIMESTAMP,
+	disabled BOOLEAN,
+	articleBody TEXT,
+	wordCount SMALLINT,
+	abstract TEXT,
+	author INTEGER NOT NULL REFERENCES users(id),
+	reviewer INTEGER REFERENCES users(id),
+	publisher INTEGER REFERENCES users(id),
+	modifier INTEGER REFERENCES users(id),
+	contentLocation TEXT,
+	isBasedOn TEXT,
+	image TEXT,
+	PRIMARY KEY (id)
+);

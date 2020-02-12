@@ -1,5 +1,6 @@
 module Api exposing
     ( LoginInfo
+    , UUID
     , article
     , articleSummaryList
     , attemptLogin
@@ -38,6 +39,10 @@ type alias LoginInfo =
     , pageMessage : Maybe String
     , wrongPassword : Bool
     }
+
+
+type alias UUID =
+    String
 
 
 initLoginInfo : LoginInfo
