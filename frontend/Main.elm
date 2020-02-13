@@ -140,28 +140,47 @@ changeRouteTo maybeRoute model =
     let
         session =
             getSession model
+
+        notFound =
+            NotFound session |> withNoCmd
     in
     case maybeRoute of
         Nothing ->
-            NotFound session |> withNoCmd
+            notFound
 
         Just Route.Logout ->
-            Page.Logout.init session |> updateWith GotLogoutMsg Logout
+            if Session.loggedIn session then
+                Page.Logout.init session |> updateWith GotLogoutMsg Logout
+
+            else
+                notFound
 
         Just Route.Home ->
             Page.Home.init session |> updateWith GotHomeMsg Home
 
         Just Route.Login ->
-            Page.Login.init session |> updateWith GotLoginMsg Login
+            if Session.loggedIn session then
+                notFound
+
+            else
+                Page.Login.init session |> updateWith GotLoginMsg Login
 
         Just Route.Register ->
-            Page.Register.init session |> updateWith GotRegisterMsg Register
+            if Session.loggedIn session then
+                notFound
+
+            else
+                Page.Register.init session |> updateWith GotRegisterMsg Register
 
         Just (Route.Article id) ->
             Page.Article.init session id |> updateWith GotArticleMsg Article
 
         Just (Route.WriteArticle uuid) ->
-            Page.WriteArticle.init session uuid |> updateWith GotWriteArticleMsg WriteArticle
+            if Session.isAdmin session then
+                Page.WriteArticle.init session uuid |> updateWith GotWriteArticleMsg WriteArticle
+
+            else
+                notFound
 
         Just Route.Empty ->
             model |> withNoCmd
