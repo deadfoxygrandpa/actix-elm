@@ -135,6 +135,14 @@ updateSession session model =
             WriteArticle { subModel | session = session }
 
 
+
+-- Type to define a condition on which pages can be acessed
+
+
+type alias Guard =
+    ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+
+
 changeRouteTo : Maybe Route.Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
     let
@@ -143,44 +151,52 @@ changeRouteTo maybeRoute model =
 
         notFound =
             NotFound session |> withNoCmd
+
+        loggedIn : Guard
+        loggedIn page =
+            if Session.loggedIn session then
+                page
+
+            else
+                notFound
+
+        loggedOut : Guard
+        loggedOut page =
+            if Session.loggedIn session then
+                notFound
+
+            else
+                page
+
+        needsRole : Session.Role -> Guard
+        needsRole role page =
+            if Session.hasRole role session then
+                page
+
+            else
+                notFound
     in
     case maybeRoute of
         Nothing ->
             notFound
 
         Just Route.Logout ->
-            if Session.loggedIn session then
-                Page.Logout.init session |> updateWith GotLogoutMsg Logout
-
-            else
-                notFound
+            loggedIn (Page.Logout.init session |> updateWith GotLogoutMsg Logout)
 
         Just Route.Home ->
             Page.Home.init session |> updateWith GotHomeMsg Home
 
         Just Route.Login ->
-            if Session.loggedIn session then
-                notFound
-
-            else
-                Page.Login.init session |> updateWith GotLoginMsg Login
+            loggedOut (Page.Login.init session |> updateWith GotLoginMsg Login)
 
         Just Route.Register ->
-            if Session.loggedIn session then
-                notFound
-
-            else
-                Page.Register.init session |> updateWith GotRegisterMsg Register
+            loggedIn (Page.Register.init session |> updateWith GotRegisterMsg Register)
 
         Just (Route.Article id) ->
             Page.Article.init session id |> updateWith GotArticleMsg Article
 
         Just (Route.WriteArticle uuid) ->
-            if Session.isAdmin session then
-                Page.WriteArticle.init session uuid |> updateWith GotWriteArticleMsg WriteArticle
-
-            else
-                notFound
+            needsRole Session.Author (Page.WriteArticle.init session uuid |> updateWith GotWriteArticleMsg WriteArticle)
 
         Just Route.Empty ->
             model |> withNoCmd

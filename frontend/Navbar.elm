@@ -138,7 +138,7 @@ hiddenWhenLoggedOut session =
 forAdmin : Session.Session -> Html.Attribute msg
 forAdmin session =
     class <|
-        if Session.isAdmin session then
+        if Session.hasRole Session.Admin session then
             ""
 
         else

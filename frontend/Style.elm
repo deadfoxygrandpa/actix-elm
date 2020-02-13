@@ -4,6 +4,7 @@ module Style exposing
     , divider
     , formButton
     , formInputField
+    , formTextField
     , link
     , linkAlert
     , loadingIcon
@@ -53,6 +54,41 @@ formInputField label error attributes =
             ]
             [ text label ]
         , Html.input
+            attrs
+            []
+        , Html.span
+            [ class "text-xs text-red-500 italic" ]
+            [ text errorText ]
+        ]
+
+
+formTextField : String -> Maybe String -> List (Attribute msg) -> Html msg
+formTextField label error attributes =
+    let
+        classes =
+            [ class "shadow-md appearance-none border rounded w-full py-2 px-3"
+            , class "focus:shadow-outline focus:outline-none"
+            ]
+
+        attrs =
+            classes ++ attributes
+
+        errorText =
+            case error of
+                Nothing ->
+                    " "
+
+                Just s ->
+                    s
+    in
+    Html.div
+        [ class "mb-4" ]
+        [ Html.label
+            [ class "block mb-2"
+            , class "text-gray-700 text-sm font-bold"
+            ]
+            [ text label ]
+        , Html.textarea
             attrs
             []
         , Html.span

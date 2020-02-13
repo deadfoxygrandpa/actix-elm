@@ -12,8 +12,8 @@ module Session exposing
     , getRoles
     , getUsername
     , getUsernameUnsafe
+    , hasRole
     , init
-    , isAdmin
     , loggedIn
     , logout
     )
@@ -140,9 +140,16 @@ getRoles (Session _ _ credentials _) =
     Maybe.map .roles credentials |> Maybe.withDefault []
 
 
+hasRole : Role -> Session -> Bool
+hasRole role_ session =
+    -- Admin has implicit access to everything
+    (List.member role_ << getRoles <| session)
+        || (List.member Admin << getRoles <| session)
+
+
 isAdmin : Session -> Bool
 isAdmin =
-    List.member Admin << getRoles
+    hasRole Admin
 
 
 logout : Session -> Session
