@@ -42,6 +42,10 @@ BEGIN
 		-- insert invitation token into table
 		INSERT INTO invitations(id, invitation)
 			VALUES (new_id, invitation_token);
+
+		-- log the result
+		INSERT INTO logs(subject, userId, dateCreated, entry)
+			VALUES ('registration', new_id, now()::TIMESTAMP, 'Added new user');
 	END IF;
 
 	-- return the results table

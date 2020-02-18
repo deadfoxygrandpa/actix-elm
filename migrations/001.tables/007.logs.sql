@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS logs (
+	id SERIAL PRIMARY KEY,
+	subject TEXT NOT NULL,
+	userId INTEGER REFERENCES users(id),
+	dateCreated TIMESTAMP NOT NULL,
+	entry TEXT
+);

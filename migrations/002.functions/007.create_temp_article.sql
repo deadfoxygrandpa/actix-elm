@@ -15,6 +15,10 @@ BEGIN
 	VALUES (now()::TIMESTAMP, usr_id)
 	RETURNING id INTO new_id;
 
+	-- log the result
+	INSERT INTO logs(subject, userId, dateCreated, entry)
+		VALUES ('create_article', usr_id, now()::TIMESTAMP, 'Created new temp article: ' || cast(new_id as TEXT));
+
 	RETURN new_id;
 
 END;
