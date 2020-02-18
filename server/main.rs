@@ -1,9 +1,11 @@
 use actix_web::{web, App, HttpServer, HttpResponse, Responder, Result};
+use actix_web::middleware::Logger;
 use actix_files as fs;
 use actix_identity::{Identity, CookieIdentityPolicy, IdentityService};
 use serde::{Serialize};
 use serde_json;
 use std::thread;
+use env_logger;
 
 #[macro_use]
 extern crate lazy_static;
@@ -152,6 +154,12 @@ lazy_static! {
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
 
+    //  set up logging
+    std::env::set_var("RUST_LOG", "actix_web=info");
+    env_logger::builder()
+        .format_timestamp(None)
+        .init();
+
     let postgres_url = std::env::var("DATABASE_URL")
             .unwrap_or_else(|_| "host=192.168.99.100 user=postgres password=docker"
             .parse().unwrap());
@@ -167,6 +175,7 @@ async fn main() -> std::io::Result<()> {
     // Run the server
     HttpServer::new(move || { 
         App::new()
+            .wrap(Logger::new("FROM: %a\tTO: %r\tAT: %t\tTIME: %D\tBYTES: %b"))
             .wrap(IdentityService::new(
                 CookieIdentityPolicy::new(SECRET_KEY.as_bytes())
                     .name("auth-cookie")
