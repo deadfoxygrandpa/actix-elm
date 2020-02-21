@@ -3,6 +3,7 @@ module Style exposing
     , bodyAlert
     , divider
     , formButton
+    , formButtonNoSubmit
     , formInputField
     , formTextField
     , link
@@ -107,6 +108,23 @@ formButton label attributes =
         attrs
         [ Html.button
             [ class "border rounded shadow-md px-3 py-2 bg-green-500 font-bold text-sm text-white mb-2"
+            , class "focus:bg-green-600"
+            , class "hover:bg-green-600"
+            ]
+            [ text label ]
+        ]
+
+
+formButtonNoSubmit : String -> List (Attribute msg) -> Html msg
+formButtonNoSubmit label attributes =
+    let
+        attrs =
+            class "" :: attributes
+    in
+    Html.div
+        attrs
+        [ Html.div
+            [ class "border inline-block cursor-pointer select-none rounded shadow-md px-3 py-2 bg-green-500 font-bold text-sm text-white mb-2"
             , class "focus:bg-green-600"
             , class "hover:bg-green-600"
             ]

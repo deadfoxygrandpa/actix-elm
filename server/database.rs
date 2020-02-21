@@ -7,6 +7,7 @@ use actix_web::{web};
 use serde::{Serialize, Deserialize};
 use glob::glob;
 use uuid::Uuid;
+use log::info;
 
 
 pub type DB = r2d2::Pool<PostgresConnectionManager<NoTls>>;

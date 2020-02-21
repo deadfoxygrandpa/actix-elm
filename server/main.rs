@@ -154,8 +154,8 @@ lazy_static! {
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
 
-    //  set up logging
-    std::env::set_var("RUST_LOG", "actix_web=info");
+    //  set up logging... already have timestamps so don't need them twice
+    std::env::set_var("RUST_LOG", "info");
     env_logger::builder()
         .format_timestamp(None)
         .init();
@@ -175,11 +175,11 @@ async fn main() -> std::io::Result<()> {
     // Run the server
     HttpServer::new(move || { 
         App::new()
-            .wrap(Logger::new("FROM: %a\tTO: %r\tAT: %t\tTIME: %D\tBYTES: %b"))
+            .wrap(Logger::new("FROM: %a\tTO: %r\tSTATUS: %s\tTIME: %D\tBYTES: %b\tREFERER: %{Referer}i\tUSER AGENT: %{User-Agent}i"))
             .wrap(IdentityService::new(
                 CookieIdentityPolicy::new(SECRET_KEY.as_bytes())
                     .name("auth-cookie")
-                    .max_age(3600)
+                    .max_age(60*60*24*7)
                     .secure(false)))
             .data(db.clone())
             .service(web::scope("/api")

@@ -1,4 +1,4 @@
-module Article exposing (Article, ArticleSummary, articleDecoder, articleSummaryCard, articleSummaryDecoder, time, timeToDate)
+module Article exposing (Article, ArticleSummary, articleDecoder, articleSummaryCard, articleSummaryDecoder, summarize, time, timeToDate)
 
 import Html exposing (..)
 import Html.Attributes exposing (class)
@@ -58,6 +58,17 @@ articleSummaryDecoder =
         (field "summary" string)
         (field "author" string)
         (field "image" (nullable string))
+
+
+summarize : Article -> ArticleSummary
+summarize article =
+    ArticleSummary
+        article.articleID
+        article.headlineCN
+        article.dateCreated
+        article.summary
+        article.author
+        article.image
 
 
 articleSummaryCard : (Route.Route -> msg) -> ArticleSummary -> Html msg

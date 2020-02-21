@@ -1,4 +1,4 @@
-module Page.Article exposing (Model, Msg(..), init, subscriptions, update, view)
+module Page.Article exposing (Model, Msg(..), init, subscriptions, update, view, viewArticle)
 
 import Api
 import Article
@@ -82,7 +82,7 @@ viewArticle article =
         , h3 [ class "text-xs text-center md:text-left" ] [ text <| Article.timeToDate article.dateCreated ]
         , Style.divider
         , div
-            [ class "w-full h-48 bg-fixed"
+            [ class "w-full h-48 bg-fixed bg-contain bg-center"
             , Style.maybeBackgroundImage article.image
             ]
             []

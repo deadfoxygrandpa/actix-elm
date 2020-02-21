@@ -101,7 +101,15 @@ updateForm msg form =
 view : Model -> { title : String, content : Html Msg }
 view model =
     { title = "Login"
-    , content = viewForm model.form |> Html.map GotFormMsg
+    , content =
+        case model.form.pageMessage of
+            Just "Logged in." ->
+                main_ [ id "content", class "container" ]
+                    [ text "Logged in. Redirecting to the home page." |> Style.bodyAlert
+                    ]
+
+            _ ->
+                viewForm model.form |> Html.map GotFormMsg
     }
 
 
